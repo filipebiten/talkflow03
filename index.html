@@ -120,6 +120,10 @@ canvas.confetti{position:fixed;inset:0;z-index:6;pointer-events:none;}
 .podium-rank{font-family:var(--font-display);font-size:2.2rem;}
 .podium-name{font-family:var(--font-display);font-size:clamp(1.2rem,2.6vw,2rem);}
 .campeao-antes{color:var(--cinza-claro);font-size:.95rem;margin-top:8px;}
+.rank-countdown{display:flex;flex-direction:column;gap:4px;align-items:center;}
+.rank-countdown-item{font-family:var(--font-display);font-size:1.1rem;color:var(--cinza-claro);opacity:.55;letter-spacing:.02em;}
+.rank-countdown-item.destaque{font-size:1.8rem;color:var(--off-white);opacity:1;}
+.rank-countdown-pos{color:var(--teal-claro);margin-right:8px;}
 
 /* ---- painel ---- */
 .control{min-height:100vh;display:flex;flex-direction:column;padding:16px 20px 20px;gap:14px;position:relative;z-index:1;}
@@ -171,6 +175,10 @@ canvas.confetti{position:fixed;inset:0;z-index:6;pointer-events:none;}
 .bloco10-cel .valor{color:var(--cinza-claro);}
 .bloco10-cel.acertou{outline:2px solid #3DDC84;}
 .bloco10-cel.errou{outline:2px solid #E05252;}
+.resultado-cel{border-radius:10px;padding:10px 8px;text-align:left;font-size:.85rem;}
+.resultado-cel b{display:block;font-family:var(--font-display);font-size:1.3rem;letter-spacing:.02em;}
+.resultado-cel.acertou{outline:3px solid #3DDC84;}
+.resultado-cel.errou{outline:3px solid #E05252;opacity:.6;}
 .pista-telao{font-size:clamp(1.3rem,3.6vw,2.2rem);max-width:900px;}
 
 /* ---- gincana: celular (?view=time) ---- */
@@ -179,6 +187,9 @@ canvas.confetti{position:fixed;inset:0;z-index:6;pointer-events:none;}
 .time-pill{padding:6px 16px;border-radius:999px;font-weight:800;font-size:.85rem;color:#000;}
 .time-pontos{font-family:var(--font-display);font-size:1.3rem;}
 .time-body{flex:1;display:flex;flex-direction:column;gap:18px;justify-content:center;}
+.resultado-time{font-family:var(--font-display);font-size:2.4rem;}
+.resultado-time.acertou{color:#3DDC84;}
+.resultado-time.errou{color:#E05252;}
 .cor-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
 .cor-btn{border-radius:14px;padding:18px;font-weight:800;font-size:1rem;border:2px solid transparent;color:#000;cursor:pointer;}
 .stepper{display:flex;align-items:center;gap:16px;justify-content:center;}
@@ -190,8 +201,13 @@ canvas.confetti{position:fixed;inset:0;z-index:6;pointer-events:none;}
 .cronos-time-list{display:flex;flex-direction:column;gap:8px;}
 .cronos-time-item{background:var(--preto-suave);border:1px solid rgba(216,212,202,.18);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:.92rem;cursor:grab;touch-action:none;}
 .cronos-time-item .alca{color:var(--cinza-claro);font-size:1.1rem;}
+.cronos-setas{margin-left:auto;display:flex;gap:6px;}
+.cronos-setas button{background:var(--preto);border:1px solid rgba(216,212,202,.3);color:var(--off-white);border-radius:8px;width:44px;height:44px;font-size:1.1rem;cursor:pointer;}
+.cronos-setas button:disabled{opacity:.25;cursor:not-allowed;}
+.cronos-time-item.arrastando{border-color:var(--teal-claro);box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:2;position:relative;transition:none;pointer-events:none;}
 .quatro-time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
 .quatro-time-cel{background:var(--preto-suave);border:2px solid rgba(216,212,202,.2);border-radius:10px;padding:10px 4px;font-size:.72rem;text-align:center;cursor:pointer;font-weight:700;}
+.quatro-tema-label{font-family:var(--font-display);font-size:1rem;letter-spacing:.02em;color:var(--teal-claro);text-align:center;}
 .quatro-time-cel.sel{border-color:var(--teal-claro);}
 .quatro-time-cel.solved0{background:#2563EB55;border-color:#2563EB;}
 .quatro-time-cel.solved1{background:#16A34A55;border-color:#16A34A;}
@@ -213,7 +229,7 @@ canvas.confetti{position:fixed;inset:0;z-index:6;pointer-events:none;}
 
 <script type="module">
 import { h, render } from 'https://esm.sh/preact@10.19.6';
-import { useState, useEffect, useRef, useCallback, useMemo } from 'https://esm.sh/preact@10.19.6/hooks';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'https://esm.sh/preact@10.19.6/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
 import { getDatabase, ref as dbRef, set, update, remove, onValue, get } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
@@ -248,6 +264,12 @@ const COR_HEX = {
   verde: '#16A34A', laranja: '#EA580C', branco: '#F2F0EA', preto: '#3A3A3A',
   lilas: '#A78BFA', rosa: '#EC4899',
 };
+function corContraste(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.6 ? '#0A0A0A' : '#EBE8E0';
+}
 const EQUIPES_INICIAIS = [
   { nome: 'AZUL', cor: 'azul', pontos: 805 },
   { nome: 'AMARELO', cor: 'amarelo', pontos: 795 },
@@ -268,9 +290,9 @@ const BLOCOS_GINCANA = [
   {
     tipo: 'escolha', nome: 'O QUE FICOU', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 45,
     rodadas: [
-      { pergunta: 'Qual era o tema do OVERFLOW 2026?', opcoes: ['Novos Começos', 'Velhos Fins', 'Rios de Água Viva', 'Identidade'], certaIdx: 0 },
-      { pergunta: 'Onde aconteceu o retiro?', opcoes: ['Chácara Aprisco', 'Recanto', 'Sítio Boa Esperança', 'Chácara Betel'], certaIdx: 0 },
-      { pergunta: 'Quando era o silêncio nos dormitórios?', opcoes: ['Variava — dependia de quando o culto daquele dia acabava', 'Sempre 22h em ponto', 'Sempre 23h em ponto', 'Sempre meia-noite em ponto'], certaIdx: 0 },
+      { pergunta: 'Qual era o tema do OVERFLOW 2026?', opcoes: ['Rios de Água Viva', 'Novos Começos', 'Identidade', 'Velhos Fins'], certaIdx: 1 },
+      { pergunta: 'Onde aconteceu o retiro?', opcoes: ['Recanto', 'Sítio Boa Esperança', 'Chácara Aprisco', 'Chácara Betel'], certaIdx: 2 },
+      { pergunta: 'Quando era o silêncio nos dormitórios?', opcoes: ['Sempre 22h em ponto', 'Sempre meia-noite em ponto', 'Sempre 23h em ponto', 'Variava — dependia de quando o culto daquele dia acabava'], certaIdx: 3 },
     ],
   },
   {
@@ -278,40 +300,40 @@ const BLOCOS_GINCANA = [
     rodadas: [
       { titulo: 'A ordem de um culto do retiro', itens: ['Abertura e oração inicial', 'Louvor animado', 'Dinâmica de integração', 'Palavra', 'Avisos e oração final'] },
       { titulo: 'A ordem do fim de semana', itens: ['Confecção das bandeiras dos times', 'Gincana Bíblica Indoor', 'Culto de abertura, sexta à noite', 'Circuito Físico e Batalha Naval', 'Premiação da gincana, domingo'] },
-      { titulo: 'O setlist de sábado à noite', itens: ['Estações', 'Quem é Esse', 'Me Atraiu', 'Só Quero Ver Você + Jesus, Tu és Belo', 'Ao que Está Assentado Sobre o Trono'] },
+      { titulo: 'A visão do vale de ossos secos (Ezequiel 37)', itens: ['Os ossos se juntam, osso com osso', 'Tendões e carne cobrem os ossos', 'A pele cobre tudo por cima', 'O Espírito entra neles', 'Os mortos vivem e se levantam, um exército enorme'] },
     ],
   },
   {
     tipo: 'quatro', nome: 'QUATRO POR QUATRO', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 120,
     rodadas: [
       { grupos: [
-        { tema: 'Cores de equipe do retiro', palavras: ['MARINHO', 'OLIVA', 'LILÁS', 'MARROM'] },
+        { tema: 'Cores de equipe do retiro', palavras: ['CINZA', 'LILÁS', 'LARANJA', 'ROSA'] },
         { tema: 'Ezequiel 36', palavras: ['PEDRA', 'CARNE', 'ÁGUA', 'ESPÍRITO'] },
-        { tema: 'Provas do OVERFLOW', palavras: ['BANDEIRA', 'ESGRIMA', 'BAMBOLÊ', 'POST-IT'] },
-        { tema: 'A visão do Flow', palavras: ['POSTURA', 'IDENTIDADE', 'OBEDIÊNCIA', 'RIO'] },
+        { tema: 'Provas do OVERFLOW', palavras: ['VÔLEI', 'FUTGOLF', 'CAMINHÃO PIPA', 'CANIBAL'] },
+        { tema: 'Frases do Flow', palavras: ['POSTURA', 'IDENTIDADE', 'OBEDIÊNCIA', 'RIO'] },
       ]},
       { grupos: [
         { tema: 'Pregaram no retiro', palavras: ['FILIPE', 'ELI', 'SUENE', 'YURI'] },
         { tema: 'Bandas do setlist', palavras: ['MORADA', 'FHOP', 'DUNAMIS', 'HILLSONG'] },
-        { tema: 'Gincanas do retiro', palavras: ['BANDEIRAS', 'BÍBLICA', 'CIRCUITO', 'NAVAL'] },
-        { tema: 'Vocais da escala', palavras: ['LARY', 'NATANAEL', 'DUDA', 'CECÍLIA'] },
+        { tema: 'Momentos do retiro', palavras: ['BANDEIRAS', 'CIRCUITO', 'NAVAL', 'PREMIAÇÃO'] },
+        { tema: 'Livros da Bíblia', palavras: ['EZEQUIEL', 'TIAGO', 'JOÃO', 'PEDRO'] },
       ]},
       { grupos: [
-        { tema: 'Instrumentos da escala', palavras: ['BATERIA', 'GUITARRA', 'VIOLÃO', 'TECLADO'] },
-        { tema: 'Músicas de sábado à noite', palavras: ['ESTAÇÕES', 'ME ATRAIU', 'QUEM É ESSE', 'TRONO'] },
-        { tema: 'Regras de convivência', palavras: ['SILÊNCIO', 'PONTUALIDADE', 'RESPEITO', 'CELULAR'] },
-        { tema: 'Dirigiram os cultos', palavras: ['ANAHY', 'RAFA', 'LUAN', 'FRAN'] },
+        { tema: 'Instrumentos da banda', palavras: ['BATERIA', 'GUITARRA', 'VIOLÃO', 'TECLADO'] },
+        { tema: 'Músicas do retiro', palavras: ['ESTAÇÕES', 'ME ATRAIU', 'A BOA PARTE', 'GLORIOSO DIA'] },
+        { tema: 'Regras de convivência', palavras: ['SILÊNCIO', 'PONTUALIDADE', 'RESPEITO', 'VESTIMENTA'] },
+        { tema: 'Cores de equipe do retiro', palavras: ['AMARELO', 'VERDE', 'PRETO', 'VERMELHO'] },
       ]},
     ],
   },
   {
-    tipo: 'pistas', nome: 'PISTAS', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 50,
+    tipo: 'pistas', nome: 'PISTAS', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 90,
     rodadas: [
-      { resposta: 'EZEQUIEL', pistas: ['Ele era sacerdote, mas nunca chegou a servir no templo', 'Profetizou no exílio, longe de casa', 'Deus mandou ele falar com um vale de ossos secos', 'O livro dele foi o texto do nosso retiro', '"Removerei seu coração de pedra"'] },
-      { resposta: 'NICODEMOS', pistas: ['Era mestre respeitado em Israel', 'Procurou Jesus de noite', 'Jesus se espantou que ele não soubesse de uma coisa', 'Ouviu que era necessário nascer de novo', 'A conversa está em João 3'] },
-      { resposta: 'JOÃO 7:38', pistas: ['Aconteceu no último dia de uma festa de oito dias', 'Em todos os outros dias derramavam água sobre o altar — nesse, não', 'Jesus se levantou e gritou no meio do templo', 'Se alguém tem sede, venha a mim e beba', 'É o versículo que dá nome à nossa rede'] },
+      { resposta: 'EZEQUIEL', pistas: ['Ele era sacerdote, mas nunca chegou a servir no templo', 'Profetizou longe de casa, com o povo arrancado da própria terra', 'Deus mandou ele falar com um vale cheio de ossos secos', 'Deus prometeu trocar um coração por outro', 'O livro dele foi o texto do nosso retiro', '"Removerei seu coração de pedra"'] },
+      { resposta: 'NICODEMOS', pistas: ['Era um homem respeitado, de uma posição importante', 'Fazia parte do grupo religioso mais rigoroso do seu tempo', 'Procurou Jesus de noite, quando ninguém estava vendo', 'Jesus se espantou que ele, sendo mestre, não soubesse de uma coisa', 'Ouviu que era necessário nascer de novo', 'A conversa inteira está em João 3'] },
+      { resposta: 'A MULHER SAMARITANA', pistas: ['Jesus parou numa cidade de Samaria, cansado da viagem, e sentou à beira de um poço', 'Era por volta do meio-dia quando uma mulher chegou sozinha pra tirar água', 'Jesus pediu água a ela, o que quebrava duas regras sociais do seu tempo', 'Ele disse que quem bebesse da água que ele dá nunca mais teria sede', 'Ela foi correndo contar pra cidade inteira sobre o homem que disse tudo que ela já tinha feito', 'A conversa está em João 4'] },
     ],
-    valoresPista: [10, 8, 6, 4, 2],
+    valoresPista: [12, 10, 8, 6, 4, 2],
   },
 ];
 const FINAL_GINCANA = {
@@ -383,6 +405,7 @@ function sanitizeState(raw) {
       respostas: (raw.revanche && raw.revanche.respostas) || {},
       acertosBloco: (raw.revanche && raw.revanche.acertosBloco) || {},
       eliminadosPista: (raw.revanche && raw.revanche.eliminadosPista) || [],
+      pistasVistas: (raw.revanche && raw.revanche.pistasVistas) || {},
     },
   };
 }
@@ -468,8 +491,9 @@ function initialState() {
       paused: false,
       pausedRemainingMs: null,
       resolvido: null,
-      pistaIndex: 0,
+      pistasVistas: {},
       eliminadosPista: [],
+      podioStep: 0,
       botsAtivos: false,
     },
   };
@@ -503,6 +527,46 @@ function useContagem(deadlineAt, paused, pausedRemainingMs) {
   return Math.max(0, deadlineAt - Date.now());
 }
 function abrirContagem(segundos) { return { deadlineAt: Date.now() + segundos * 1000 }; }
+
+/* =========================================================
+   FLIP — anima reordenação de elementos (placar, 4x4) sem
+   trocar a estrutura do DOM: mede antes/depois e compensa
+   com transform, deixando o CSS transition fazer o resto.
+   ========================================================= */
+function useFlip(containerRef, opts) {
+  const duration = (opts && opts.duration) || .6;
+  const easing = (opts && opts.easing) || 'cubic-bezier(.32,.72,0,1)';
+  const scaleFrom = opts && opts.scaleFrom;
+  const dep = opts && opts.dep;
+  const prevRects = useRef(new Map());
+  const lastDep = useRef(undefined);
+  useLayoutEffect(() => {
+    // sem isso, qualquer re-render alheio (ex: o relógio da contagem regressiva
+    // piscando a cada 250ms no componente pai) reentra aqui no meio de uma
+    // transição em andamento e reseta o transform — é isso que piscava.
+    if (dep !== undefined) { if (dep === lastDep.current) return; lastDep.current = dep; }
+    const el = containerRef.current;
+    if (!el) return;
+    const nodes = el.querySelectorAll('[data-flip-key]');
+    const next = new Map();
+    nodes.forEach((node) => next.set(node.dataset.flipKey, node.getBoundingClientRect()));
+    nodes.forEach((node) => {
+      const key = node.dataset.flipKey;
+      const prev = prevRects.current.get(key);
+      const now = next.get(key);
+      if (!prev || !now) return;
+      const dx = prev.left - now.left, dy = prev.top - now.top;
+      if (!dx && !dy) return;
+      node.style.transition = 'none';
+      node.style.transform = `translate(${dx}px,${dy}px)${scaleFrom ? ` scale(${scaleFrom})` : ''}`;
+      requestAnimationFrame(() => {
+        node.style.transition = `transform ${duration}s ${easing}`;
+        node.style.transform = '';
+      });
+    });
+    prevRects.current = next;
+  });
+}
 
 /* =========================================================
    CONFETE
@@ -648,20 +712,32 @@ function StagePremiacao({ state }) {
    TELÃO — REVANCHE
    ========================================================= */
 function PlacarBars({ equipes, prevRanking, destaque }) {
-  const ordem = sortedEquipesIdx(equipes);
-  const max = equipes[ordem[0]].pontos || 1;
+  const containerRef = useRef(null);
+  // ordena pela posição ANTERIOR primeiro (se disponível) — assim o placar
+  // "aparece como estava" no primeiro frame e só depois o FLIP abaixo anima
+  // cada linha subindo/descendo até a posição nova.
+  const ordemAtual = sortedEquipesIdx(equipes);
+  const [ordemExibida, setOrdemExibida] = useState(() => (prevRanking && prevRanking.length ? prevRanking : ordemAtual));
+  useEffect(() => {
+    const t = setTimeout(() => setOrdemExibida(ordemAtual), 900);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line
+  }, [JSON.stringify(ordemAtual)]);
+  useFlip(containerRef, { duration: 3, easing: 'cubic-bezier(.16,1,.3,1)', scaleFrom: 1.12, dep: ordemExibida.join(',') });
+  const max = equipes[ordemAtual[0]].pontos || 1;
   return html`
-    <div class="rank-list">
-      ${ordem.map((idx, pos) => {
+    <div class="rank-list" ref=${containerRef}>
+      ${ordemExibida.map((idx, pos) => {
         const e = equipes[idx];
         let seta = '';
         if (prevRanking) {
           const prevPos = prevRanking.indexOf(idx);
-          if (prevPos > pos) seta = html`<span class="seta up">▲</span>`;
-          else if (prevPos < pos) seta = html`<span class="seta down">▼</span>`;
+          const posNova = ordemAtual.indexOf(idx);
+          if (prevPos > posNova) seta = html`<span class="seta up">▲</span>`;
+          else if (prevPos < posNova) seta = html`<span class="seta down">▼</span>`;
         }
         return html`
-          <div class="rank-row ${pos === 0 ? 'lider' : ''}" key=${idx}>
+          <div class="rank-row ${pos === 0 ? 'lider' : ''}" key=${idx} data-flip-key=${idx}>
             <div class="rank-name">${seta}${e.nome}</div>
             <div class="rank-track">
               <div class="rank-bar" style=${{ background: COR_HEX[e.cor], transform: `scaleX(${Math.max(e.pontos, 0) / max})` }}></div>
@@ -707,7 +783,7 @@ function resolverRodadaPatch(r, bloco, corretas) {
     const resp = (r.respostas || {})[idx];
     if (correta && resp && resp.tempoMs < menorTempo) { menorTempo = resp.tempoMs; primeiroAcerto = idx; }
     let pontos = e.pontos;
-    if (bloco.tipo === 'pistas' && correta && resp) pontos += bloco.valoresPista[resp.pistaIndexNoAcerto != null ? resp.pistaIndexNoAcerto : 4];
+    if (bloco.tipo === 'pistas' && correta && resp) pontos += bloco.valoresPista[resp.pistaIndexNoAcerto != null ? resp.pistaIndexNoAcerto : bloco.valoresPista.length - 1];
     return { ...e, pontos };
   });
   if (primeiroAcerto !== null) equipes[primeiroAcerto] = { ...equipes[primeiroAcerto], pontos: equipes[primeiroAcerto].pontos + 5 };
@@ -741,16 +817,10 @@ function useMotorRevanche(state) {
       return;
     }
     if (r.fase === 'revelacaoAposta') {
-      if (ms <= 0) avancar({ fase: 'rodada', respostas: {}, pistaIndex: 0, eliminadosPista: [], primeiroAcerto: null, deadlineAt: Date.now() + bloco.tempoRodadaSeg * 1000 });
+      if (ms <= 0) avancar({ fase: 'rodada', respostas: {}, pistasVistas: {}, eliminadosPista: [], primeiroAcerto: null, deadlineAt: Date.now() + bloco.tempoRodadaSeg * 1000 });
       return;
     }
     if (r.fase === 'rodada') {
-      if (bloco.tipo === 'pistas') {
-        const decorrido = (bloco.tempoRodadaSeg * 1000) - ms;
-        const passoMs = (bloco.tempoRodadaSeg * 1000) / 5;
-        const idxEsperado = Math.min(4, Math.floor(decorrido / passoMs));
-        if (idxEsperado !== r.pistaIndex) { updateRevanche({ pistaIndex: idxEsperado }); return; }
-      }
       const entradas = Object.entries(r.respostas || {});
       let algumAcerto = false;
       const corretas = {};
@@ -768,7 +838,7 @@ function useMotorRevanche(state) {
     if (r.fase === 'resultadoRodada') {
       if (ms <= 0) {
         if (r.rodadaIndex + 1 < totalRodadasBloco(r)) {
-          avancar({ rodadaIndex: r.rodadaIndex + 1, respostas: {}, pistaIndex: 0, eliminadosPista: [], primeiroAcerto: null, fase: 'rodada', deadlineAt: Date.now() + bloco.tempoRodadaSeg * 1000 });
+          avancar({ rodadaIndex: r.rodadaIndex + 1, respostas: {}, pistasVistas: {}, eliminadosPista: [], primeiroAcerto: null, fase: 'rodada', deadlineAt: Date.now() + bloco.tempoRodadaSeg * 1000 });
         } else {
           const prevRanking = sortedEquipesIdx(r.equipes);
           const equipes = r.equipes.map((e, idx) => ({ ...e, pontos: e.pontos + resolverAposta(r.apostas[idx] || 0, r.acertosBloco[idx] || 0, totalRodadasBloco(r)) }));
@@ -816,40 +886,71 @@ function useBotsRevanche(state) {
           else if (bloco.tipo === 'cronos') valor = acerta ? round.itens.map((_, i) => i) : [...round.itens.map((_, i) => i)].reverse();
           else if (bloco.tipo === 'quatro') valor = { gruposResolvidos: acerta ? round.grupos.length : Math.floor(Math.random() * round.grupos.length) };
           else if (bloco.tipo === 'pistas') valor = acerta ? round.resposta : 'chute errado';
-          updateRevanche({ [`respostas/${idx}`]: { valor, tempoMs: Math.floor(Math.random() * 8000), pistaIndexNoAcerto: r.pistaIndex } });
+          updateRevanche({ [`respostas/${idx}`]: { valor, tempoMs: Math.floor(Math.random() * 8000), pistaIndexNoAcerto: r.pistasVistas[idx] != null ? r.pistasVistas[idx] - 1 : 0 } });
         }
       }, atraso);
     }
   }, [r.fase, r.blocoIndex, r.rodadaIndex, r.botsAtivos]);
 }
 
-function StageRevancheResultadoFinal({ equipes }) {
+function StageRevancheResultadoFinal({ equipes, muted, podioStep }) {
   const ordem = sortedEquipesIdx(equipes);
   const campeaoIdx = ordem[0];
   const antes = posicaoAntes(equipes, campeaoIdx);
   const podio = [ordem[1], ordem[0], ordem[2]].filter((v) => v !== undefined);
-  const heights = { 0: 'second', 1: 'first', 2: 'third' };
+
+  useEffect(() => {
+    if (muted || podioStep) return;
+    const id = setInterval(playTamborSuspense, 1200);
+    return () => clearInterval(id);
+  }, [muted, podioStep]);
+
+  if (!podioStep) {
+    return html`
+      <div class="stage">
+        <div class="display display-huge pulse-scale">Quem será o grande campeão da Revanche?</div>
+      </div>
+    `;
+  }
+
+  // podioStep conta de trás pra frente: 1 revela o 10º lugar, 2 o 9º... até
+  // 10 revelar o campeão. posição (0-indexada, 0=1º) fica visível quando
+  // podioStep já passou da sua vez (10 - posição).
+  const revelado = (pos) => podioStep >= (10 - pos);
+  const posicoesFora = [9, 8, 7, 6, 5, 4, 3].filter((pos) => pos < ordem.length && revelado(pos));
+  const ultimoRevelado = posicoesFora.length ? posicoesFora[posicoesFora.length - 1] : -1;
+
   return html`
     <div class="stage">
-      <${Confetti} />
+      ${podioStep >= 10 ? html`<${Confetti} />` : ''}
       <div class="display display-lg">Campeão da Revanche</div>
-      <div class="podium-wrap">
-        ${podio.map((idx, slot) => {
-          if (idx === undefined) return '';
-          const e = equipes[idx];
-          const posReal = idx === campeaoIdx ? 1 : (slot === 0 ? 2 : 3);
-          const h = posReal === 1 ? 'min(40vh,320px)' : posReal === 2 ? 'min(26vh,200px)' : 'min(18vh,150px)';
-          return html`
-            <div class="podium-slot" key=${idx}>
-              <div class="podium-name">${e.nome}</div>
-              <div class="podium-block" style=${{ height: h, background: posReal === 1 ? COR_HEX[e.cor] : 'var(--preto-suave)', borderTop: `4px solid ${COR_HEX[e.cor]}` }}>
-                <div class="podium-rank">${posReal}º</div>
-              </div>
-            </div>
-          `;
-        })}
+      <div class="rank-countdown">
+        ${posicoesFora.map((pos) => html`
+          <div class="rank-countdown-item ${pos === ultimoRevelado ? 'pop-in destaque' : ''}" key=${pos}>
+            <span class="rank-countdown-pos">${pos + 1}º</span> ${equipes[ordem[pos]].nome}
+          </div>
+        `)}
       </div>
-      <div class="campeao-antes">${equipes[campeaoIdx].nome} estava em ${antes}º lugar antes da Revanche.</div>
+      ${podioStep >= 8 ? html`
+        <div class="podium-wrap">
+          ${podio.map((idx, slot) => {
+            if (idx === undefined) return '';
+            const e = equipes[idx];
+            const posReal = idx === campeaoIdx ? 1 : (slot === 0 ? 2 : 3);
+            if (!revelado(posReal - 1)) return html`<div class="podium-slot" key=${idx}></div>`;
+            const h = posReal === 1 ? 'min(40vh,320px)' : posReal === 2 ? 'min(26vh,200px)' : 'min(18vh,150px)';
+            return html`
+              <div class="podium-slot pop-in" key=${idx}>
+                <div class="podium-name">${e.nome}</div>
+                <div class="podium-block" style=${{ height: h, background: posReal === 1 ? COR_HEX[e.cor] : 'var(--preto-suave)', borderTop: `4px solid ${COR_HEX[e.cor]}` }}>
+                  <div class="podium-rank">${posReal}º</div>
+                </div>
+              </div>
+            `;
+          })}
+        </div>
+      ` : ''}
+      ${podioStep >= 10 ? html`<div class="campeao-antes">${equipes[campeaoIdx].nome} estava em ${antes}º lugar antes da Revanche.</div>` : ''}
     </div>
   `;
 }
@@ -889,6 +990,23 @@ function GridTimes({ equipes, respostas, apostas, mostrarValor }) {
     </div>
   `;
 }
+function GridTimesPistas({ equipes, respostas, eliminadosPista, pistasVistas }) {
+  return html`
+    <div class="bloco10-grid">
+      ${equipes.map((e, idx) => {
+        const respondeu = !!(respostas || {})[idx];
+        const eliminado = (eliminadosPista || []).includes(idx);
+        const vistas = (pistasVistas || {})[idx] || 1;
+        return html`
+          <div class="bloco10-cel ${eliminado ? 'errou' : ''}" style=${{ '--cor': COR_HEX[e.cor] }} key=${e.nome}>
+            <b>${e.nome}</b>
+            <span class="valor">${respondeu ? 'respondeu' : eliminado ? 'fora' : `${vistas} pista${vistas > 1 ? 's' : ''}`}</span>
+          </div>
+        `;
+      })}
+    </div>
+  `;
+}
 function StageAposta({ r, ms, revelacao }) {
   const bloco = blocoAtual(r);
   return html`
@@ -910,8 +1028,10 @@ function StageRodada({ r, ms }) {
       ${bloco.tipo === 'escolha' ? html`<div class="display display-md">${round.pergunta}</div>` : ''}
       ${bloco.tipo === 'cronos' ? html`<div class="display display-md">${round.titulo}</div>` : ''}
       ${bloco.tipo === 'quatro' ? html`<div class="sub">16 palavras — ache os 4 grupos de 4</div>` : ''}
-      ${bloco.tipo === 'pistas' ? html`<div class="display display-md pista-telao">${round.pistas[r.pistaIndex]}</div><div class="sub">pista ${r.pistaIndex + 1} de 5 · vale ${bloco.valoresPista[r.pistaIndex]} pts</div>` : ''}
-      <${GridTimes} equipes=${r.equipes} respostas=${r.respostas} />
+      ${bloco.tipo === 'pistas' ? html`<div class="sub">Cada equipe revela as próprias pistas no celular — quem souber, responde. Resposta vale menos a cada pista revelada.</div>` : ''}
+      ${bloco.tipo === 'pistas'
+        ? html`<${GridTimesPistas} equipes=${r.equipes} respostas=${r.respostas} eliminadosPista=${r.eliminadosPista} pistasVistas=${r.pistasVistas} />`
+        : html`<${GridTimes} equipes=${r.equipes} respostas=${r.respostas} />`}
       <div class="contagem-grande">${Math.ceil(ms / 1000)}s</div>
     </div>
   `;
@@ -927,8 +1047,9 @@ function StageResultadoRodada({ r }) {
         ${r.equipes.map((e, idx) => {
           const resp = (r.respostas || {})[idx];
           const correta = resp ? avaliarRodada(bloco.tipo, resp.valor, round) : false;
+          const cor = COR_HEX[e.cor];
           return html`
-            <div class="bloco10-cel ${correta ? 'acertou' : 'errou'}" style=${{ '--cor': COR_HEX[e.cor] }} key=${e.nome}>
+            <div class="resultado-cel ${correta ? 'acertou' : 'errou'}" style=${{ background: cor, color: corContraste(cor) }} key=${e.nome}>
               <b>${e.nome}</b>
               <span class="valor">${correta ? '✓' : '✕'}${idx === r.primeiroAcerto ? ' · 1º +5' : ''}</span>
             </div>
@@ -957,7 +1078,7 @@ function StageRevanche({ state }) {
   if (r.fase === 'rodada') return html`<${StageRodada} r=${r} ms=${ms} />`;
   if (r.fase === 'resultadoRodada') return html`<${StageResultadoRodada} r=${r} />`;
   if (r.fase === 'resultadoBloco') return html`<${StageResultadoBloco} r=${r} />`;
-  return html`<${StageRevancheResultadoFinal} equipes=${r.equipes} />`;
+  return html`<${StageRevancheResultadoFinal} equipes=${r.equipes} muted=${state.muted} podioStep=${r.podioStep} />`;
 }
 function StagePlacarAoVivo({ equipes }) {
   return html`
@@ -1175,6 +1296,7 @@ function RevancheControl({ state, updateState }) {
     updateRevanche({ blocoIndex: r.blocoIndex - 1, rodadaIndex: 0, apostas: {}, respostas: {}, acertosBloco: {}, fase: 'aposta', deadlineAt: Date.now() + anterior.tempoApostaSeg * 1000 });
   }
   function toggleBots() { updateRevanche({ botsAtivos: !r.botsAtivos }); }
+  function avancarPodio() { updateRevanche({ podioStep: Math.min(10, (r.podioStep || 0) + 1) }); }
   function resetarGincana() {
     if (!confirm('Resetar a Revanche? Os pontos voltam pro placar inicial do retiro.')) return;
     updateRevanche({
@@ -1182,7 +1304,7 @@ function RevancheControl({ state, updateState }) {
       timeConectado: Array(r.equipes.length).fill(null),
       fase: 'entrada', blocoIndex: 0, rodadaIndex: 0, apostas: {}, respostas: {}, acertosBloco: {},
       primeiroAcerto: null, prevRanking: null, deadlineAt: null, paused: false, pausedRemainingMs: null,
-      resolvido: null, pistaIndex: 0, eliminadosPista: [],
+      resolvido: null, pistasVistas: {}, eliminadosPista: [], podioStep: 0,
     });
   }
 
@@ -1206,6 +1328,7 @@ function RevancheControl({ state, updateState }) {
           <button class="btn ${r.paused ? 'btn-primary' : 'btn-outline'}" onClick=${togglePausa}>${r.paused ? '▶ Retomar' : '⏸ PAUSAR'}</button>
           <button class="btn btn-outline btn-sm" onClick=${liberarInicio}>Liberar início (sem esperar 10 times)</button>
           <button class="btn btn-outline btn-sm" onClick=${forcarFimDeFase}>Forçar fim da fase atual</button>
+          ${r.fase === 'podio' ? html`<button class="btn btn-primary btn-sm" disabled=${(r.podioStep || 0) >= 10} onClick=${avancarPodio}>▶ Próximo (${r.podioStep || 0}/10)</button>` : ''}
         </div>
         <div class="controls-row">
           <button class="btn btn-ghost btn-sm" disabled=${r.blocoIndex === 0} onClick=${voltarBloco}>← Bloco anterior</button>
@@ -1318,19 +1441,48 @@ function TimeAposta({ r, equipeIdx }) {
 }
 function TimeCronosList({ itens, disabled, onChange }) {
   const [lista, setLista] = useState(() => shuffle(itens));
+  const [draggingIdx, setDraggingIdx] = useState(null);
+  const [offsetY, setOffsetY] = useState(0);
   const dragIdx = useRef(null);
-  function onDown(i) { if (!disabled) dragIdx.current = i; }
-  function onEnter(i) {
-    if (disabled || dragIdx.current === null || dragIdx.current === i) return;
-    setLista((l) => { const n = [...l]; const [item] = n.splice(dragIdx.current, 1); n.splice(i, 0, item); dragIdx.current = i; return n; });
+  const startY = useRef(0);
+  const containerRef = useRef(null);
+  function onDown(i, e) {
+    if (disabled) return;
+    dragIdx.current = i; setDraggingIdx(i); setOffsetY(0); startY.current = e.clientY;
+    if (e.target.setPointerCapture) e.target.setPointerCapture(e.pointerId);
   }
-  function onUp() { dragIdx.current = null; }
+  function onMove(e) {
+    if (dragIdx.current === null) return;
+    setOffsetY(e.clientY - startY.current);
+    // touch captura o ponteiro no elemento onde o drag começou, então pointerenter
+    // dos vizinhos nunca dispara — hit-test manual pra achar quem está embaixo do dedo.
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const itemEl = el && el.closest('.cronos-time-item');
+    if (!itemEl || !containerRef.current || !containerRef.current.contains(itemEl)) return;
+    const overIdx = Number(itemEl.dataset.idx);
+    if (Number.isNaN(overIdx) || overIdx === dragIdx.current) return;
+    setLista((l) => { const n = [...l]; const [item] = n.splice(dragIdx.current, 1); n.splice(overIdx, 0, item); dragIdx.current = overIdx; return n; });
+    setDraggingIdx(overIdx); setOffsetY(0); startY.current = e.clientY;
+  }
+  function onUp() { dragIdx.current = null; setDraggingIdx(null); setOffsetY(0); }
+  function mover(i, delta) {
+    if (disabled) return;
+    const j = i + delta;
+    if (j < 0 || j >= lista.length) return;
+    setLista((l) => { const n = [...l]; [n[i], n[j]] = [n[j], n[i]]; return n; });
+  }
   useEffect(() => { onChange(lista.map((it) => it.i)); }, [lista]);
   return html`
-    <div class="cronos-time-list" onPointerUp=${onUp}>
+    <div class="cronos-time-list" ref=${containerRef} onPointerMove=${onMove} onPointerUp=${onUp} onPointerCancel=${onUp}>
       ${lista.map((item, i) => html`
-        <div class="cronos-time-item" key=${item.i} onPointerDown=${() => onDown(i)} onPointerEnter=${() => onEnter(i)}>
+        <div class="cronos-time-item ${draggingIdx === i ? 'arrastando' : ''}"
+          style=${draggingIdx === i ? { transform: `translateY(${offsetY}px)` } : {}}
+          data-idx=${i} key=${item.i} onPointerDown=${(e) => onDown(i, e)}>
           <span class="alca">⠿</span><span>${i + 1}. ${item.v}</span>
+          <span class="cronos-setas">
+            <button type="button" disabled=${disabled || i === 0} onClick=${(e) => { e.stopPropagation(); mover(i, -1); }}>▲</button>
+            <button type="button" disabled=${disabled || i === lista.length - 1} onClick=${(e) => { e.stopPropagation(); mover(i, 1); }}>▼</button>
+          </span>
         </div>
       `)}
     </div>
@@ -1405,11 +1557,16 @@ function TimeRodada({ r, equipeIdx }) {
       }
     }
     const corGrupo = (idx) => { const r2 = resolvidos.findIndex((g) => g.includes(idx)); return r2 >= 0 ? `solved${palavras[idx].v.gi}` : ''; };
+    const containerRef = useRef(null);
+    const resolvidosFlat = resolvidos.flat();
+    const ordem = [...resolvidosFlat, ...palavras.map((_, i) => i).filter((i) => !resolvidosFlat.includes(i))];
+    useFlip(containerRef, { dep: ordem.join(',') });
     return html`
       <div class="time-body">
         <div class="sub">Toque em 4 palavras com algo em comum. Chances: ${chances}</div>
-        <div class="quatro-time-grid">
-          ${palavras.map((item, idx) => html`<div class="quatro-time-cel ${sel.includes(idx) ? 'sel' : ''} ${corGrupo(idx)}" key=${idx} onClick=${() => toggle(idx)}>${item.v.p}</div>`)}
+        ${resolvidos.map((grupoIdxs, gi2) => html`<div class="quatro-tema-label" key=${gi2}>${round.grupos[palavras[grupoIdxs[0]].v.gi].tema}</div>`)}
+        <div class="quatro-time-grid" ref=${containerRef}>
+          ${ordem.map((idx) => html`<div class="quatro-time-cel ${sel.includes(idx) ? 'sel' : ''} ${corGrupo(idx)}" data-flip-key=${idx} key=${idx} onClick=${() => toggle(idx)}>${palavras[idx].v.p}</div>`)}
         </div>
         <button class="btn btn-primary" disabled=${jaRespondeu || sel.length !== 4} onClick=${confirmar}>Confirmar grupo</button>
         ${jaRespondeu ? html`<div class="sub">Enviado! Aguardando os outros times…</div>` : ''}
@@ -1419,18 +1576,42 @@ function TimeRodada({ r, equipeIdx }) {
   if (bloco.tipo === 'pistas') {
     const eliminado = r.eliminadosPista.includes(equipeIdx);
     const [chute, setChute] = useState('');
+    const vistas = r.pistasVistas[equipeIdx] || 1;
+    const podeVerMais = vistas < round.pistas.length;
+    const valorAtual = bloco.valoresPista[vistas - 1];
+    function verMaisPista() {
+      if (!podeVerMais || eliminado || jaRespondeu) return;
+      update(dbRef(db), { [`talkflow/talkflow03/revanche/pistasVistas/${equipeIdx}`]: vistas + 1 });
+    }
+    function pular() { enviar('(pulou a rodada)', { pistaIndexNoAcerto: vistas - 1 }); }
     return html`
       <div class="time-body">
-        <div class="pista-time-box">${round.pistas[r.pistaIndex]}</div>
+        ${round.pistas.slice(0, vistas).map((p, i) => html`<div class="pista-time-box" key=${i}>${i + 1}. ${p}</div>`)}
+        <div class="sub" style="text-align:center;">Responder agora vale ${valorAtual} pontos${podeVerMais ? ` · próxima pista vale ${bloco.valoresPista[vistas]}` : ''}</div>
+        ${podeVerMais && !eliminado && !jaRespondeu ? html`<button class="btn btn-outline" onClick=${verMaisPista}>Ver próxima pista</button>` : ''}
         <input class="pista-input" placeholder="Quem é / o que é?" value=${chute} disabled=${eliminado || jaRespondeu}
           onInput=${(e) => setChute(e.target.value)} />
         <button class="btn btn-primary" disabled=${eliminado || jaRespondeu || !chute.trim()}
-          onClick=${() => enviar(chute, { pistaIndexNoAcerto: r.pistaIndex })}>Responder</button>
-        ${eliminado ? html`<div class="sub">Errou — fora da rodada.</div>` : jaRespondeu ? html`<div class="sub">Resposta enviada.</div>` : ''}
+          onClick=${() => enviar(chute, { pistaIndexNoAcerto: vistas - 1 })}>Responder</button>
+        <button class="btn btn-ghost" disabled=${eliminado || jaRespondeu} onClick=${pular}>Não sei, pular rodada</button>
+        ${eliminado ? html`<div class="sub">Fora da rodada.</div>` : jaRespondeu ? html`<div class="sub">Resposta enviada.</div>` : ''}
       </div>
     `;
   }
   return html`<div class="time-body"><div class="sub">Aguardando…</div></div>`;
+}
+function TimeResultadoRodada({ r, equipeIdx }) {
+  const bloco = blocoAtual(r);
+  const round = rodadaAtual(r);
+  const resp = (r.respostas || {})[equipeIdx];
+  const correta = resp ? avaliarRodada(bloco.tipo, resp.valor, round) : false;
+  return html`
+    <div class="time-body" style="text-align:center;">
+      <div class="resultado-time ${correta ? 'acertou' : 'errou'}">${correta ? '✓ Acertou!' : '✕ Errou'}</div>
+      ${equipeIdx === r.primeiroAcerto ? html`<div class="sub">Primeiro a acertar — bônus +5!</div>` : ''}
+      ${bloco.tipo === 'pistas' && r.primeiroAcerto !== null ? html`<div class="sub">Resposta: ${round.resposta}</div>` : ''}
+    </div>
+  `;
 }
 function TimeView() {
   const [state, setState] = useState(null);
@@ -1448,7 +1629,8 @@ function TimeView() {
   else if (r.fase === 'aposta') corpo = html`<${TimeAposta} r=${r} equipeIdx=${equipeIdx} />`;
   else if (r.fase === 'revelacaoAposta') corpo = html`<div class="time-body"><div class="sub" style="text-align:center;">Apostas reveladas — próxima rodada já vem.</div></div>`;
   else if (r.fase === 'rodada') corpo = html`<${TimeRodada} r=${r} equipeIdx=${equipeIdx} />`;
-  else if (r.fase === 'resultadoRodada' || r.fase === 'resultadoBloco') corpo = html`<div class="time-body"><div class="sub" style="text-align:center;">Vejam o telão!</div></div>`;
+  else if (r.fase === 'resultadoRodada') corpo = html`<${TimeResultadoRodada} r=${r} equipeIdx=${equipeIdx} />`;
+  else if (r.fase === 'resultadoBloco') corpo = html`<div class="time-body"><div class="sub" style="text-align:center;">Vejam o telão!</div></div>`;
   else corpo = html`<div class="time-body"><div class="sub" style="text-align:center;">Fim da Revanche — vejam o telão!</div></div>`;
 
   return html`
