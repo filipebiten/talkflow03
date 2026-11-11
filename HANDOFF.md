@@ -1,178 +1,202 @@
 # HANDOFF — talkflow03 (Premiação + Gincana "A Revanche")
 
-Sessão de 10/11/2026. Evento é dia 13/11. Filipe vai testar amanhã e
-provavelmente vai pedir ajustes — este doc existe pra uma conversa nova
-continuar sem refazer nada do zero.
+Sessão de 11/11/2026 (continuação da sessão de 10/11 — handoff anterior
+sobrescrito, conteúdo relevante dela incorporado aqui). Evento é dia 13/11.
+App já foi testado ao vivo pelo Filipe (celular real + telão + painel) e tem
+várias rodadas de feedback aplicadas. Estado da gincana no Firebase foi
+resetado no fim desta sessão — está limpo, pronto pro evento.
 
 ## Goal
 
-Duas coisas no mesmo app (`talkflow03/index.html`, single-file,
-Preact+htm+Firebase, mesmo padrão dos apps irmãos `talkflow`, `velhosfins`,
-`overflow-awards`):
+Duas coisas no mesmo app (`talkflow03/index.html`, single-file, Preact+htm+
+Firebase, mesmo padrão dos apps irmãos `talkflow`, `velhosfins`,
+`overflow-awards`), publicado em `https://filipebiten.github.io/talkflow03/`:
 
-1. **Premiação** — já existia, mudou de "carrega JSON exportado" pra "lê o
-   resultado da votação do `overflow-awards` AO VIVO" (a votação segue aberta
-   até a véspera do evento).
-2. **Gincana "A Revanche"** (nova) — depois da premiação, no mesmo link, 10
-   times competem ao vivo pelo celular (`?view=time`), apostando pontos por
-   bloco, em 4 blocos de 3 rodadas + 1 final, com telão autônomo (quase não
-   depende do painel) e placar que já vem do retiro, não de zero.
+1. **Premiação** — lê o resultado da votação do `overflow-awards` AO VIVO
+   (`talkflow/overflowawards/real`).
+2. **Gincana "A Revanche"** — depois da premiação, no mesmo link, 10 times
+   competem ao vivo pelo celular (`?view=time`), apostando pontos por bloco,
+   em 4 blocos de 3 rodadas + 1 final + pódio, com telão autônomo e placar
+   que já vem do retiro.
 
-Spec completo: `docs/superpowers/specs/2026-11-10-gincana-revanche-design.md`
-Plano de implementação (14 tasks): `docs/superpowers/plans/2026-11-10-gincana-revanche.md`
+Spec original: `docs/superpowers/specs/2026-11-10-gincana-revanche-design.md`
+Plano original (14 tasks): `docs/superpowers/plans/2026-11-10-gincana-revanche.md`
+(várias tasks do plano original ainda não feitas — ver "Não implementado").
 
 ## Current Progress
 
-**Implementado e testado ao vivo** (Firebase real, `talkflow-dba50`, não
-local-only):
+**Tudo testado ao vivo no Firebase real (`talkflow-dba50`) e publicado no
+GitHub Pages** (2 deploys nesta sessão: `ee7e82c`, depois `caf517c`).
 
-- Premiação lê voto ao vivo de `talkflow/overflowawards/real` — testado,
-  mostrando nomes/votos reais da votação em andamento (ex.: "Débora Carioca,
-  289 votos"). Operador pode travar um vencedor manualmente (edita e aparece
-  "↺ voltar a seguir o voto ao vivo").
-- Tela de revelação do vencedor agora SEMPRE mostra 2º e 3º lugar junto (não
-  é mais um botão de alternar) — pedido do Filipe.
-- Gincana: entrada por QR (+ botão "Iniciar (teste)" pra pular a espera dos
-  10 times — só pra teste, não deveria aparecer assim no evento real),
-  aposta com stepper e contagem autônoma, os 4 tipos de bloco (Escolha,
-  Cronos com drag real por toque, Quatro por Quatro, Pistas com revelação
-  progressiva), resultado de rodada (✓/✕ + bônus +5 de quem acertou
-  primeiro), resultado de bloco com placar animado (setas sobe/desce) e
-  pagamento da aposta (dobra se acertou ≥2/3, perde metade se não), e
-  encadeamento automático pro próximo bloco. Pódio reaproveita o componente
-  antigo (`StageRevancheResultadoFinal`), já calcula "estava em Nº lugar
-  antes".
-- Modo bots de teste: `revanche.botsAtivos` (toggle no painel) faz os times
-  1-9 apostarem/responderem sozinhos (delay 300ms-1.2s, ~65% de acerto) —
-  só pra eu (Claude) conseguir testar sozinho fazendo de conta que sou o
-  time AZUL. **Isso é só teste — não é pra aparecer/ligar no evento real.**
-- Segurança: achamos que as regras do Firebase Realtime Database estavam
-  TOTALMENTE abertas (`.write: true` sem autenticação) pro prefixo
-  `talkflow/` inteiro — confirmado na prática (escrevi direto via REST sem
-  nenhuma credencial, só pra resetar estado de teste). Qualquer F12/REST
-  podia reescrever voto ou ponto de equipe.
-  - Adicionei `signInAnonymously` no `talkflow03` (import `firebase-auth.js`
-    + chamada logo depois de `getDatabase`) — não quebra nada sozinho, só
-    prepara o terreno.
-  - Regra nova (só restringe `talkflow03`, deixa `overflowawards` aberto
-    por enquanto porque a votação dele tá rolando ao vivo — mexer lá agora
-    é risco de derrubar voto de verdade):
-    ```json
-    {
-      "rules": {
-        "talkflow": {
-          ".read": true,
-          "talkflow03": { ".write": "auth != null" },
-          "$outros": { ".write": true }
-        }
-      }
-    }
-    ```
-    **FEITO E CONFIRMADO (10/11, mais tarde na mesma sessão):** Filipe
-    publicou a regra E ativou Anonymous Auth no Firebase Console
-    (Authentication → Sign-in method → Anonymous). Testado de ponta a
-    ponta: escrita sem autenticação em `talkflow03` agora dá 401
-    "Permission denied"; escrita autenticada (token anônimo de verdade,
-    igual o app faz) funciona normal; leitura continua aberta; app real
-    testado no navegador (painel ajustando ponto de equipe) confirmou
-    escrita funcionando ponta a ponta. `overflowawards`/`velhosfins`/
-    `talkflow` continuam com escrita aberta (decisão deliberada, por causa
-    da votação ao vivo — revisitar depois que a votação do Overflow Awards
-    fechar, antes do evento).
-  - **Teste de adulteração direta nos votos do Overflow Awards: FEITO,
-    resultado limpo.** Cruzei `votos` vs `nomes` vs `respostas` reais
-    (802 votantes na hora do teste) procurando voto em nome nunca
-    registrado (sinal forte de escrita direta via REST/F12, pulando o
-    app) — **zero ocorrências**. Achei 21 casos de "resposta aponta pra
-    voto que não existe mais", mas o padrão (nomes tipo "joao 1".."joao 6"
-    sendo apontados por uma resposta só, enquanto `votos` já só tem
-    "joao") bate exatamente com o uso normal da ferramenta de moderação
-    "fundir" no `?view=resultado` do `overflow-awards` (que atualiza
-    `votos`/`nomes` mas não reescreve `respostas`, por design) — não é
-    fraude, é resíduo esperado. **Limitação que fica registrada**: o
-    esquema não grava timestamp nem fingerprint, então não dá pra provar
-    "a mesma pessoa votou 2x" direto dos dados, só dá pra achar sinal de
-    escrita direta (que não achamos). Script de verificação:
-    salvo no scratchpad da sessão, não sobrevive — se precisar rodar de
-    novo, a lógica é: pra cada `votos[catId][key]`, checar se
-    `nomes[catId][key]` existe; se não existir, é suspeito.
+Feedback do Filipe testando ao vivo (celular real + telão) e o que foi
+corrigido, nesta ordem:
 
-**Não implementado ainda** (resto do plano de 14 tasks, docs/superpowers/plans/2026-11-10-gincana-revanche.md):
+1. **Placar animado no resultado de bloco**: antes só tinha setinha ▲▼
+   estática. Agora anima de verdade — a linha "aparece como estava" e depois
+   sobe/desce até a posição nova (FLIP: mede posição antes/depois via
+   `getBoundingClientRect`, aplica `transform` e deixa o CSS animar).
+   Primeira versão **piscava** — causa real: o relógio da contagem
+   regressiva (`useContagem`, tique a cada 250ms) fazia o componente pai
+   re-renderizar o tempo todo, e o hook de animação (`useFlip`) não tinha
+   guarda de dependência, então reentrava no meio de uma transição em
+   andamento e resetava o `transform`. Corrigido com um `dep` que só deixa
+   o hook rodar quando a ordem realmente muda. Duração aumentada pra 3s
+   com easing orgânico (`cubic-bezier(.16,1,.3,1)` + leve zoom) a pedido do
+   Filipe ("bem lento pra dar pra acompanhar").
+2. **Cronos (bloco de ordenar)**: o arraste por toque não funcionava
+   direito — a causa real era que o navegador "captura" o ponteiro no
+   elemento onde o toque começou, então o hit-test original (`pointerenter`
+   nos vizinhos) nunca disparava durante um drag por toque. Trocado por
+   hit-test manual com `document.elementFromPoint` + `pointer-events:none`
+   no item sendo arrastado (pra não detectar ele mesmo). **Mesmo assim o
+   Filipe reportou que ainda não conseguia mover no celular dele** (testando
+   via iPhone Mirroring, que traduz toque de um jeito que não dá pra
+   depurar daqui) — então foi adicionado um **fallback garantido**: botões
+   ▲▼ de 44×44px (tamanho de toque recomendado) do lado de cada item, que
+   movem o item uma posição pra cima/baixo com um toque, sem depender de
+   gesto de arrastar. **Isso ainda não foi confirmado funcionando no celular
+   real do Filipe** — é o item mais importante pra re-testar.
+3. **Resultado de rodada no telão**: antes tinha uma barra lateral colorida
+   fina (side-tab, que o hook de design aponta como "cara de IA"). Trocado
+   por cor cheia no card + contraste de texto automático (`corContraste`,
+   calcula luminância e escolhe preto ou branco).
+4. **Quatro por Quatro**: grupo acertado agora sobe e vira uma linha só (FLIP
+   igual ao placar), com o tema revelado acima da grade. Conteúdo corrigido
+   com o texto que o Filipe mandou (ver abaixo).
+5. **Pistas — reescrito do zero**: antes era um timer global que revelava
+   pista pra sala inteira, achado como "bug" (pulava pista sozinho, mudava
+   de pista sozinho). Agora cada equipe revela a própria pista no próprio
+   ritmo (`pistasVistas: {equipeIdx: count}`, 1 pista grátis, até 6 por
+   rodada), responde quando quiser, e tem botão "pular rodada" (conta como
+   errado, libera pra próxima). Telão mostra status por equipe (quantas
+   pistas cada um já viu), não mais um texto único pra sala toda.
+   **Validação de resposta ficou mais tolerante**: antes exigia o texto
+   exato normalizado; agora aceita resposta parcial contendo as palavras
+   com peso da resposta certa (ex.: "samaritana" sozinho já vale pra "A
+   MULHER SAMARITANA") — bug real que o Filipe pegou testando essa rodada
+   específica.
+6. **Pódio**: antes tinha só suspense → 3º → 2º → campeão (automático por
+   timer). Filipe pediu pra começar do 10º lugar. Reescrito como
+   `revanche.podioStep` (0 a 10) sincronizado no Firebase, avançado por um
+   botão **"▶ Próximo"** no painel (só aparece na fase pódio) — dá controle
+   total de ritmo pro operador no evento real. **Bug achado e corrigido**:
+   `podioStep` não resetava pra 0 quando o jogo chegava no pódio
+   naturalmente (só resetava no botão "Resetar gincana") — então se alguém
+   tivesse testado até o fim antes, o pódio pulava direto pro resultado
+   final em vez de mostrar o suspense. Corrigido no ponto de transição
+   bloco final → pódio.
+7. **Premiação**: não tinha jeito de voltar pra tela de abertura depois de
+   já ter avançado (Filipe caiu direto na categoria 3 ao reabrir o painel,
+   porque o estado antigo de teste ainda estava lá). Adicionado botão
+   "↺ Voltar pra abertura".
+8. **Conteúdo da gincana corrigido** (texto exato que o Filipe mandou,
+   substituindo o que tinha antes):
+   - Cronos R2 "ordem do fim de semana": agora é Culto de abertura (sexta)
+     → Confecção das bandeiras → Gincana Bíblica Indoor → Circuito
+     Físico/Batalha Naval → Premiação (domingo).
+   - Cronos R3: trocado de "setlist de sábado à noite" (o Filipe não tinha
+     certeza da ordem) pra "vale de ossos secos" (Ezequiel 37) — ligado ao
+     tema do retiro, não depende de memória do evento.
+   - Quatro R1 "Provas do Overflow": `PIPA` → `CAMINHÃO PIPA`.
+   - Quatro: conteúdo das 3 rodadas todo substituído pelo texto real que o
+     Filipe mandou (ver o código, `BLOCOS_GINCANA`, pra lista completa).
+   - Pistas R3: trocado de "JOÃO 7:38" (Filipe achou que não ia rolar) pra
+     "A MULHER SAMARITANA" (João 4), mantendo o tema de sede/água.
+   - Pistas: todas as 3 rodadas ganharam a 6ª pista (texto do Filipe) e a
+     tabela de pontos virou `[12,10,8,6,4,2]`.
+   - Escolha (Bloco 1): resposta certa não fica mais sempre na opção A —
+     as alternativas foram reordenadas pra cada pergunta.
+9. Gerado e enviado ao Filipe um texto com todas as perguntas/respostas/
+   cores de equipe pra ele mandar pro pessoal confirmar — não salvo em
+   arquivo, só na conversa (pode regenerar lendo `BLOCOS_GINCANA`/
+   `FINAL_GINCANA` no código se precisar de novo).
+
+**Relacionado, repo separado (`overflow-awards`, não `talkflow03`)**: a
+`?view=resultado` do overflow-awards estava pública — adicionado gate de
+senha client-side (`flow12345`, visível no código-fonte, só trava clique
+casual) só nessa view; `?view=votar` continua aberto pros votantes. Já
+commitado e pushado nesse outro repo.
+
+**Não implementado ainda** (do plano original de 14 tasks):
 - Task 12 (parte): corrigir resposta depois do bloco já pontuado com
-  undo/redo correto do delta — não existe ainda, painel só tem ajuste manual
-  de pontos (+/-), não tem "corrigir resposta errada".
-- Task 13: modo Simulação de verdade (`?view=simulacao`, um só operador
-  controlando as 10 equipes com interface própria, path separado
-  `talkflow/talkflow03-sim`). O que existe hoje (botsAtivos) é um atalho
-  mais simples que fiz pra testar rápido, não é isso.
-- Task 14: sons novos (abertura de aposta, acerto, erro) já tem as funções
-  (`playAberturaAposta`, `playAcerto`, `playErro`) mas **não estão
-  chamadas em lugar nenhum ainda** — faltou conectar nos momentos certos.
-  README do talkflow03 não foi atualizado com a seção da gincana.
+  undo/redo correto do delta — painel só tem ajuste manual de pontos (+/-).
+- Task 13: modo Simulação de verdade (`?view=simulacao`) — hoje só existe o
+  atalho `botsAtivos` (times 1-9 jogam sozinhos, só pra teste).
+- Task 14: sons (`playAberturaAposta`, `playAcerto`, `playErro`) existem
+  mas não estão plugados em lugar nenhum. README não atualizado com a
+  seção da gincana.
 
 ## What Worked
 
-- Arquitetura "quem escreve o quê": **telão** é dono das transições de fase
-  e correção automática (é o único aparelho garantido sempre aberto);
-  **painel** só escreve overrides manuais e pausa; **cada celular** só
-  escreve a própria entrada em `apostas`/`respostas`/`timeConectado`. Isso
-  evitou o bug que achei no meio do caminho: o painel original fazia
-  `set()` da árvore inteira a cada clique (sobrescrevia o progresso ao vivo
-  do telão/celulares) — troquei pra `update()` com caminho específico
-  (`updateRevanche`/`updateTop`, funções já no código) em TUDO que o painel
-  escreve na revanche.
-- Relógio por `deadlineAt` (epoch ms) direto no Firebase + cada cliente
-  calculando localmente quanto falta (`useContagem`) — não precisa de
-  servidor, funciona bem.
-- Testar direto no Firebase real (não local/mock) pegou um bug de
-  verdade (o do `set()` inteiro) que um teste local nunca teria mostrado.
-- `node -e` com `https` nativo do Node pra chamar a REST API do Firebase
-  (reset de estado, leitura de dados) — o hook do projeto bloqueia
-  `curl`/`wget` direto, mas não bloqueia Node com `https` embutido.
+- Arquitetura "quem escreve o quê" (telão dono das transições, painel só
+  overrides manuais, celular só a própria entrada) continua segurando bem,
+  mesmo com toda a reescrita de pistas/pódio desta sessão.
+- **FLIP (First-Last-Invert-Play)** pra animação de reordenação sem
+  bibliotecas — mede `getBoundingClientRect` antes/depois, aplica
+  `transform` compensando a diferença, deixa o CSS `transition` animar até
+  zero. Usado no placar E no 4x4. É mais confiável que confiar em
+  reordenação de DOM com CSS puro.
+- **Guarda de dependência no `useLayoutEffect`** (comparar um `dep` contra
+  um `useRef` antes de rodar a lógica pesada) — resolveu o bug de piscar
+  que um hook sem guarda causava quando o componente pai re-renderiza por
+  outro motivo (tique do relógio) no meio de uma animação.
+- **`elementFromPoint` + `pointer-events:none` no elemento arrastado** pra
+  hit-test manual durante drag por toque — mais confiável que depender de
+  `pointerenter` nos vizinhos, que não dispara quando o ponteiro é
+  capturado (comportamento padrão de touch).
+- Sobrescrever `window.confirm = () => true` via `javascript_tool` antes de
+  clicar em botões com `confirm()` embutido — evita travar a aba de
+  automação (problema documentado no handoff anterior, contornado desta
+  vez).
+- Testar no site PUBLICADO (GitHub Pages), não só local — pegou o resíduo
+  de teste (`podioStep` antigo) que só aparece com estado real/compartilhado
+  acumulado, difícil de reproduzir num reset limpo local.
 
-## What Didn't Work
+## What Didn't Work / Still Uncertain
 
-- Clicar em botão que chama `confirm()` via automação do navegador **trava
-  a aba** (CDP não consegue mais mandar comando, nem tecla Return resolve
-  — só fechar a aba e abrir outra, ou evitar clicar nesses botões via
-  automação e fazer a ação equivalente direto por REST). Isso aconteceu no
-  botão "Resetar gincana" (tem `confirm()` dentro).
-- Backtick escapado (`\``) dentro de um `${...}` de template `htm` quebra
-  o JS — o certo é backtick puro (nested template literal) ou, mais seguro,
-  concatenação de string normal. Rolou um erro assim no meio da sessão,
-  já corrigido.
-- Script de checar "voto órfão" (voto sem resposta correspondente) deu
-  falso positivo enorme (800+) porque o Firebase transforma objeto com
-  chaves "1","2","3"... em ARRAY — `Object.keys()` de um array inclui um
-  índice fantasma "0" que não existe de verdade. Corrigido ignorando
-  `catId === "0"`.
+- **Drag do Cronos ainda não confirmado no celular real do Filipe.** Duas
+  rodadas de fix (pointer capture, depois hit-test manual) e ele ainda
+  reportou não conseguir mover. Testar via automação de mouse no Chrome
+  SEMPRE funcionou (não reproduz o problema), então a causa exata no
+  dispositivo dele (iPhone Mirroring, que traduz touch de um jeito próprio)
+  não foi isolada. Os botões ▲▼ são o fallback garantido — **confirmar com
+  o Filipe se os botões aparecem e funcionam**, e se o drag em si continua
+  quebrado nele é OK deixar assim (os botões resolvem o essencial).
+- REST direto no Firebase pra reset de estado (`node -e` com `https`)
+  **parou de funcionar** desde que a regra de auth foi ativada (10/11) —
+  dá 401 sem token. Resetar agora só dá pelo botão "Resetar gincana" no
+  próprio app (que faz a auth anônima certa).
+- O modo automático "/auto" do Claude Code bloqueia escrita direta via
+  Bash em recurso compartilhado (Firebase) mesmo com consentimento do
+  usuário no chat — precisa ser feito pela UI do próprio app.
 
-## Next Steps (amanhã, com o Filipe)
+## Next Steps
 
-1. Terminar o resto do plano: Task 12 (corrigir resposta com undo/redo),
-   Task 13 (modo Simulação de verdade — hoje só tem o atalho `botsAtivos`),
-   Task 14 (plugar os sons que já existem nas funções mas não são chamados,
-   atualizar o README).
-2. **Antes do evento**: tirar/esconder o botão "Iniciar (teste)" do telão
-   (hoje fica sempre visível, era só pra eu testar rápido) e desligar
-   `botsAtivos` se tiver ficado ligado. Resetar a gincana
-   (`?view=painel` → aba Revanche → "Resetar gincana") pra não carregar
-   pontuação de teste pro dia 13.
-3. **Depois que a votação do Overflow Awards fechar (dia 12)**: revisitar
-   se vale apertar a regra do Firebase pra `overflowawards`/`velhosfins`/
-   `talkflow` também (hoje só `talkflow03` ficou protegido; os outros
-   ficaram de propósito abertos pra não arriscar a votação ao vivo).
-4. Filipe ainda vai testar o fluxo completo (ele começou: testou premiação
-   ao vivo com dados reais, testou aposta+Cronos com toque real no
-   celular, ainda não testou Quatro por Quatro, Pistas, Final nem Pódio
-   de ponta a ponta ele mesmo).
+1. **Confirmar com o Filipe**: os botões ▲▼ do Cronos funcionam no celular
+   dele? Se sim, problema resolvido (drag continua quebrado mas não importa
+   mais). Se não, precisa de outra abordagem (talvez trocar o mecanismo de
+   ordenar inteiro por botões, sem a opção de arrastar).
+2. Terminar o resto do plano original se der tempo: Task 12 (undo/redo),
+   Task 13 (Simulação de verdade), Task 14 (plugar sons, atualizar README)
+   — baixa prioridade, evento é amanhã.
+3. **Antes do evento**: a gincana já foi resetada no fim desta sessão
+   (fase entrada, bots desligados, placar inicial) — não esquecer de
+   resetar de novo se alguém testar depois disso.
+4. Revisitar a regra do Firebase pra `overflowawards`/`velhosfins`/
+   `talkflow` (hoje só `talkflow03` é protegido) depois que a votação do
+   Overflow Awards fechar — decisão pendente desde 10/11, ainda não feita.
 
 ## Como testar de novo
 
-- Servidor local: `cd /Users/filipebiten/projects/talkflow03 && python3 -m http.server 8751` (ou qualquer porta livre)
-- Abrir 3 abas: `?view=painel`, `?view=telao`, `?view=time`
-- Resetar gincana limpa (via REST, evita o `confirm()` que trava automação):
-  ver o `node -e` de reset no histórico desta sessão, ou usar o botão
-  "Resetar gincana" no painel manualmente (sem automação).
-- Ligar bots de teste: botão "Ativar bots (teste)" no painel, ou
-  `PUT https://talkflow-dba50-default-rtdb.firebaseio.com/talkflow/talkflow03/revanche/botsAtivos.json` com `true`.
+- **Site publicado (preferir este pro teste real)**: `https://filipebiten.github.io/talkflow03/`
+  (`?view=telao`, `?view=painel`, `?view=time`). Deploy = `git add index.html && git commit && git push` na branch `main`; GitHub Pages atualiza em ~30-60s.
+- Servidor local pra iteração rápida: `cd /Users/filipebiten/projects/talkflow03 && python3 -m http.server 8751`.
+- Resetar gincana: `?view=painel` → aba Revanche → "Resetar gincana" (tem
+  `confirm()` — se for automatizar, rodar `window.confirm = () => true`
+  via JS antes de clicar).
+- Ligar bots de teste (times 1-9 jogam sozinhos): botão "Ativar bots
+  (teste)" no painel — **lembrar de desligar antes do evento real**.
+- Avançar fase manualmente sem esperar o timer: "Forçar fim da fase atual"
+  no painel.
+- Avançar o pódio (10º→1º→campeão): botão "▶ Próximo" no painel, só visível
+  quando `fase === 'podio'`.
