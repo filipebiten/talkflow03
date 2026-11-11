@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" integrity="sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k" crossorigin="anonymous"></script>
 <style>
 :root{
   --preto:#0A0A0A;
@@ -91,6 +92,9 @@ select{background:var(--preto-suave);border:1px solid var(--cinza-claro);color:v
 .trophy-emoji{position:absolute;top:8%;left:50%;transform:translateX(-50%);font-size:clamp(2.2rem,7vw,4.5rem);}
 .vencedor-nome{font-family:var(--font-display);font-size:clamp(3.2rem,10vw,8rem);line-height:1;color:var(--teal-claro);}
 .vencedor-votos{color:var(--cinza-claro);font-size:clamp(.95rem,2vw,1.2rem);}
+.pod23{display:flex;flex-direction:column;gap:6px;margin-top:10px;color:var(--cinza-claro);font-size:clamp(.9rem,1.8vw,1.1rem);}
+.pod23-pos{font-family:var(--font-display);color:var(--teal-claro);margin-right:6px;}
+.pod23-votos{color:var(--cinza-claro);margin-left:6px;}
 
 canvas.confetti{position:fixed;inset:0;z-index:6;pointer-events:none;}
 
@@ -157,6 +161,44 @@ canvas.confetti{position:fixed;inset:0;z-index:6;pointer-events:none;}
 .kbd-hint{font-size:.75rem;color:var(--cinza-claro);}
 .kbd-hint kbd{background:var(--preto-suave);border:1px solid var(--cinza-claro);border-radius:4px;padding:1px 6px;font-family:var(--font-body);}
 
+/* ---- gincana: telão ---- */
+.proximo-em{position:absolute;bottom:18px;right:22px;font-size:.8rem;color:var(--cinza-claro);letter-spacing:.03em;}
+.contagem-grande{font-family:var(--font-display);font-size:clamp(2.5rem,8vw,5rem);color:var(--teal-claro);}
+.qr-box{background:#fff;padding:14px;border-radius:14px;}
+.bloco10-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:min(92vw,760px);}
+.bloco10-cel{background:var(--preto-suave);border-radius:10px;padding:10px 8px;border-left:4px solid var(--cor);text-align:left;font-size:.85rem;}
+.bloco10-cel b{display:block;font-family:var(--font-display);font-size:1.3rem;letter-spacing:.02em;}
+.bloco10-cel .valor{color:var(--cinza-claro);}
+.bloco10-cel.acertou{outline:2px solid #3DDC84;}
+.bloco10-cel.errou{outline:2px solid #E05252;}
+.pista-telao{font-size:clamp(1.3rem,3.6vw,2.2rem);max-width:900px;}
+
+/* ---- gincana: celular (?view=time) ---- */
+.time{min-height:100vh;display:flex;flex-direction:column;padding:5vw 6vw;gap:18px;position:relative;z-index:1;}
+.time-header{display:flex;align-items:center;justify-content:space-between;}
+.time-pill{padding:6px 16px;border-radius:999px;font-weight:800;font-size:.85rem;color:#000;}
+.time-pontos{font-family:var(--font-display);font-size:1.3rem;}
+.time-body{flex:1;display:flex;flex-direction:column;gap:18px;justify-content:center;}
+.cor-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.cor-btn{border-radius:14px;padding:18px;font-weight:800;font-size:1rem;border:2px solid transparent;color:#000;cursor:pointer;}
+.stepper{display:flex;align-items:center;gap:16px;justify-content:center;}
+.stepper button{width:54px;height:54px;border-radius:14px;border:1px solid var(--cinza-claro);background:transparent;color:var(--off-white);font-size:1.4rem;cursor:pointer;}
+.stepper .val{font-family:var(--font-display);font-size:2.2rem;width:80px;text-align:center;}
+.opcoes-time{display:flex;flex-direction:column;gap:10px;}
+.opcao-time{background:var(--preto-suave);border:2px solid rgba(216,212,202,.2);border-radius:14px;padding:16px;font-size:1.05rem;text-align:left;color:var(--off-white);cursor:pointer;}
+.opcao-time.sel{border-color:var(--teal-claro);background:rgba(37,137,160,.15);}
+.cronos-time-list{display:flex;flex-direction:column;gap:8px;}
+.cronos-time-item{background:var(--preto-suave);border:1px solid rgba(216,212,202,.18);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:.92rem;cursor:grab;touch-action:none;}
+.cronos-time-item .alca{color:var(--cinza-claro);font-size:1.1rem;}
+.quatro-time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.quatro-time-cel{background:var(--preto-suave);border:2px solid rgba(216,212,202,.2);border-radius:10px;padding:10px 4px;font-size:.72rem;text-align:center;cursor:pointer;font-weight:700;}
+.quatro-time-cel.sel{border-color:var(--teal-claro);}
+.quatro-time-cel.solved0{background:#2563EB55;border-color:#2563EB;}
+.quatro-time-cel.solved1{background:#16A34A55;border-color:#16A34A;}
+.quatro-time-cel.solved2{background:#EAB30855;border-color:#EAB308;}
+.quatro-time-cel.solved3{background:#A78BFA55;border-color:#A78BFA;}
+.pista-time-box{background:var(--preto-suave);border-radius:14px;padding:16px;font-size:1.05rem;}
+
 @media (max-width:600px){
   .control{padding:12px 14px 18px;gap:12px;}
   .control-title{font-size:1.3rem;}
@@ -174,7 +216,8 @@ import { h, render } from 'https://esm.sh/preact@10.19.6';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'https://esm.sh/preact@10.19.6/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
-import { getDatabase, ref as dbRef, set, onValue, get } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
+import { getDatabase, ref as dbRef, set, update, remove, onValue, get } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
 
 const html = htm.bind(h);
 const LOGO_URL = 'https://flow.1b.org.br/wp-content/uploads/2026/08/logo-flow-2026.png';
@@ -217,12 +260,79 @@ const EQUIPES_INICIAIS = [
   { nome: 'LILÁS', cor: 'lilas', pontos: 735 },
   { nome: 'ROSA', cor: 'rosa', pontos: 730 },
 ];
-const PONTOS_PADRAO = [100, 90, 85, 80, 75, 70, 65, 60, 55, 50];
-const PROVAS_INICIAIS = [
-  { id: 1, nome: 'Prova 1 (exemplo — editar)', descricao: 'Descrição da prova 1.', pontos: PONTOS_PADRAO },
-  { id: 2, nome: 'Prova 2 (exemplo — editar)', descricao: 'Descrição da prova 2.', pontos: PONTOS_PADRAO },
-  { id: 3, nome: 'Prova 3 (exemplo — editar)', descricao: 'Descrição da prova 3.', pontos: PONTOS_PADRAO },
+/* =========================================================
+   GINCANA "A REVANCHE" — conteúdo das 13 rodadas + final.
+   Copiado verbatim de docs/superpowers/specs/2026-11-10-gincana-revanche-design.md
+   ========================================================= */
+const BLOCOS_GINCANA = [
+  {
+    tipo: 'escolha', nome: 'O QUE FICOU', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 45,
+    rodadas: [
+      { pergunta: 'Qual era o tema do OVERFLOW 2026?', opcoes: ['Novos Começos', 'Velhos Fins', 'Rios de Água Viva', 'Identidade'], certaIdx: 0 },
+      { pergunta: 'Onde aconteceu o retiro?', opcoes: ['Chácara Aprisco', 'Recanto', 'Sítio Boa Esperança', 'Chácara Betel'], certaIdx: 0 },
+      { pergunta: 'Quando era o silêncio nos dormitórios?', opcoes: ['Variava — dependia de quando o culto daquele dia acabava', 'Sempre 22h em ponto', 'Sempre 23h em ponto', 'Sempre meia-noite em ponto'], certaIdx: 0 },
+    ],
+  },
+  {
+    tipo: 'cronos', nome: 'CRONOS', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 90,
+    rodadas: [
+      { titulo: 'A ordem de um culto do retiro', itens: ['Abertura e oração inicial', 'Louvor animado', 'Dinâmica de integração', 'Palavra', 'Avisos e oração final'] },
+      { titulo: 'A ordem do fim de semana', itens: ['Confecção das bandeiras dos times', 'Gincana Bíblica Indoor', 'Culto de abertura, sexta à noite', 'Circuito Físico e Batalha Naval', 'Premiação da gincana, domingo'] },
+      { titulo: 'O setlist de sábado à noite', itens: ['Estações', 'Quem é Esse', 'Me Atraiu', 'Só Quero Ver Você + Jesus, Tu és Belo', 'Ao que Está Assentado Sobre o Trono'] },
+    ],
+  },
+  {
+    tipo: 'quatro', nome: 'QUATRO POR QUATRO', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 120,
+    rodadas: [
+      { grupos: [
+        { tema: 'Cores de equipe do retiro', palavras: ['MARINHO', 'OLIVA', 'LILÁS', 'MARROM'] },
+        { tema: 'Ezequiel 36', palavras: ['PEDRA', 'CARNE', 'ÁGUA', 'ESPÍRITO'] },
+        { tema: 'Provas do OVERFLOW', palavras: ['BANDEIRA', 'ESGRIMA', 'BAMBOLÊ', 'POST-IT'] },
+        { tema: 'A visão do Flow', palavras: ['POSTURA', 'IDENTIDADE', 'OBEDIÊNCIA', 'RIO'] },
+      ]},
+      { grupos: [
+        { tema: 'Pregaram no retiro', palavras: ['FILIPE', 'ELI', 'SUENE', 'YURI'] },
+        { tema: 'Bandas do setlist', palavras: ['MORADA', 'FHOP', 'DUNAMIS', 'HILLSONG'] },
+        { tema: 'Gincanas do retiro', palavras: ['BANDEIRAS', 'BÍBLICA', 'CIRCUITO', 'NAVAL'] },
+        { tema: 'Vocais da escala', palavras: ['LARY', 'NATANAEL', 'DUDA', 'CECÍLIA'] },
+      ]},
+      { grupos: [
+        { tema: 'Instrumentos da escala', palavras: ['BATERIA', 'GUITARRA', 'VIOLÃO', 'TECLADO'] },
+        { tema: 'Músicas de sábado à noite', palavras: ['ESTAÇÕES', 'ME ATRAIU', 'QUEM É ESSE', 'TRONO'] },
+        { tema: 'Regras de convivência', palavras: ['SILÊNCIO', 'PONTUALIDADE', 'RESPEITO', 'CELULAR'] },
+        { tema: 'Dirigiram os cultos', palavras: ['ANAHY', 'RAFA', 'LUAN', 'FRAN'] },
+      ]},
+    ],
+  },
+  {
+    tipo: 'pistas', nome: 'PISTAS', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 50,
+    rodadas: [
+      { resposta: 'EZEQUIEL', pistas: ['Ele era sacerdote, mas nunca chegou a servir no templo', 'Profetizou no exílio, longe de casa', 'Deus mandou ele falar com um vale de ossos secos', 'O livro dele foi o texto do nosso retiro', '"Removerei seu coração de pedra"'] },
+      { resposta: 'NICODEMOS', pistas: ['Era mestre respeitado em Israel', 'Procurou Jesus de noite', 'Jesus se espantou que ele não soubesse de uma coisa', 'Ouviu que era necessário nascer de novo', 'A conversa está em João 3'] },
+      { resposta: 'JOÃO 7:38', pistas: ['Aconteceu no último dia de uma festa de oito dias', 'Em todos os outros dias derramavam água sobre o altar — nesse, não', 'Jesus se levantou e gritou no meio do templo', 'Se alguém tem sede, venha a mim e beba', 'É o versículo que dá nome à nossa rede'] },
+    ],
+    valoresPista: [10, 8, 6, 4, 2],
+  },
 ];
+const FINAL_GINCANA = {
+  tipo: 'cronos', nome: 'EZEQUIEL EMBARALHADO', tetoAposta: 120, tempoApostaSeg: 45, tempoRodadaSeg: 180,
+  itens: [
+    'Então aspergirei sobre vocês água pura,', 'e ficarão limpos.', 'Eu os purificarei de sua impureza',
+    'e sua adoração a ídolos.', 'Eu lhes darei um novo coração', 'e colocarei em vocês um novo espírito.',
+    'Removerei seu coração de pedra', 'e lhes darei coração de carne.', 'Porei dentro de vocês meu Espírito,',
+    'para que sigam meus decretos', 'e tenham o cuidado de obedecer a meus estatutos.', 'Vocês serão o meu povo, e eu serei o seu Deus.',
+  ],
+  referencia: 'Ezequiel 36:25-28 (NVT)',
+};
+
+function normalizeTexto(s) { return String(s || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' '); }
+function avaliarEscolha(opcaoIdx, round) { return opcaoIdx === round.certaIdx; }
+function avaliarCronos(ordemEnviada, round) { if (!Array.isArray(ordemEnviada) || ordemEnviada.length !== round.itens.length) return false; return ordemEnviada.every((v, i) => v === i); }
+// o celular já valida cada grupo contra round.grupos ao vivo (via a origem de cada
+// palavra sorteada) — aqui só confirmamos que achou os 4 grupos inteiros.
+function avaliarQuatro(valor, round) { return !!valor && valor.gruposResolvidos === round.grupos.length; }
+function avaliarPistas(texto, resposta) { return normalizeTexto(texto) === normalizeTexto(resposta); }
+function resolverAposta(aposta, acertos, totalRodadas) { return (acertos * 2 >= totalRodadas) ? aposta : -Math.floor(aposta / 2); }
 
 /* =========================================================
    SINCRONIZAÇÃO — Firebase Realtime Database. Mesmo projeto
@@ -239,7 +349,23 @@ const firebaseConfig = {
 };
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
+const auth = getAuth(fbApp);
+signInAnonymously(auth).catch(() => {});
 const stateRef = dbRef(db, 'talkflow/talkflow03');
+const OVERFLOW_BASE = 'talkflow/overflowawards/real';
+function rankingFromNomesVotos(nomes, votos) {
+  const nomesObj = nomes || {};
+  const votosObj = votos || {};
+  return Object.keys(nomesObj).map((key) => ({
+    key, nome: nomesObj[key], votos: Object.keys(votosObj[key] || {}).length,
+  })).sort((a, b) => b.votos - a.votos);
+}
+function subscribeOverflow(handler) {
+  const u1 = onValue(dbRef(db, `${OVERFLOW_BASE}/nomes`), (snap) => handler('nomes', snap.exists() ? snap.val() : {}));
+  const u2 = onValue(dbRef(db, `${OVERFLOW_BASE}/votos`), (snap) => handler('votos', snap.exists() ? snap.val() : {}));
+  const u3 = onValue(dbRef(db, `${OVERFLOW_BASE}/respostas`), (snap) => handler('respostas', snap.exists() ? snap.val() : {}));
+  return () => { u1(); u2(); u3(); };
+}
 
 function pushState(state) { set(stateRef, state); }
 // RTDB não guarda array vazio nem buraco em array (vira null) — reconstitui.
@@ -252,8 +378,11 @@ function sanitizeState(raw) {
     revanche: {
       ...base.revanche, ...(raw.revanche || {}),
       equipes: (raw.revanche && raw.revanche.equipes) || base.revanche.equipes,
-      provas: (raw.revanche && raw.revanche.provas) || base.revanche.provas,
-      colocacao: (raw.revanche && raw.revanche.colocacao) || {},
+      timeConectado: (raw.revanche && raw.revanche.timeConectado) || base.revanche.timeConectado,
+      apostas: (raw.revanche && raw.revanche.apostas) || {},
+      respostas: (raw.revanche && raw.revanche.respostas) || {},
+      acertosBloco: (raw.revanche && raw.revanche.acertosBloco) || {},
+      eliminadosPista: (raw.revanche && raw.revanche.eliminadosPista) || [],
     },
   };
 }
@@ -295,11 +424,17 @@ function playTamborSuspense() { beep(90, 0, 0.18, 'sine', 0.1); }
 function playLargada() { beep(440, 0, 0.12, 'square', 0.2); beep(880, 0.12, 0.15, 'square', 0.2); }
 function playFimTempo() { for (let i = 0; i < 3; i++) beep(220, i * 0.22, 0.16, 'sawtooth', 0.22); }
 function playCelebracao() { [392, 523.25, 659.25, 783.99, 1046.5].forEach((f, i) => beep(f, i * 0.1, 0.4, 'triangle', 0.22)); }
+function playAberturaAposta() { beep(330, 0, 0.14, 'sine', 0.18); beep(440, 0.1, 0.18, 'sine', 0.18); }
+function playAcerto() { beep(659.25, 0, 0.1, 'triangle', 0.22); beep(880, 0.08, 0.16, 'triangle', 0.22); }
+function playErro() { beep(220, 0, 0.2, 'sawtooth', 0.2); }
 function playSoundByName(name) {
   if (name === 'fanfarra') playFanfarra();
   else if (name === 'largada') playLargada();
   else if (name === 'fimTempo') playFimTempo();
   else if (name === 'celebracao') playCelebracao();
+  else if (name === 'aberturaAposta') playAberturaAposta();
+  else if (name === 'acerto') playAcerto();
+  else if (name === 'erro') playErro();
 }
 
 /* =========================================================
@@ -312,7 +447,7 @@ function initialState() {
     soundSeq: 0,
     sound: null,
     premiacao: {
-      categorias: CATEGORIAS_PREMIACAO.map((c) => ({ ...c, vencedor: '', votos: 0, ranking: [] })),
+      categorias: CATEGORIAS_PREMIACAO.map((c) => ({ ...c, vencedor: '', votos: 0, ranking: [], travado: false })),
       totalVotantes: 0,
       index: 0,
       fase: 'abertura', // abertura | categoria | vencedor | fechamento
@@ -320,15 +455,28 @@ function initialState() {
     },
     revanche: {
       equipes: EQUIPES_INICIAIS.map((e) => ({ ...e, pontosIniciais: e.pontos })),
-      provas: PROVAS_INICIAIS,
-      provaIndex: 0,
-      fase: 'overflowPlacar', // overflowPlacar | prova | resultadoFinal
-      subfase: 'A', // A=prova | B=resultado | C=placarAtualizado
-      colocacao: {},
+      timeConectado: Array(10).fill(null),
+      fase: 'entrada', // entrada | aposta | revelacaoAposta | rodada | resultadoRodada | resultadoBloco | final | podio
+      blocoIndex: 0, // 0-3 = BLOCOS_GINCANA, 4 = FINAL_GINCANA
+      rodadaIndex: 0,
+      apostas: {},
+      respostas: {},
+      acertosBloco: {},
+      primeiroAcerto: null,
       prevRanking: null,
+      deadlineAt: null,
+      paused: false,
+      pausedRemainingMs: null,
+      resolvido: null,
+      pistaIndex: 0,
+      eliminadosPista: [],
+      botsAtivos: false,
     },
   };
 }
+function blocoAtual(r) { return r.blocoIndex >= BLOCOS_GINCANA.length ? FINAL_GINCANA : BLOCOS_GINCANA[r.blocoIndex]; }
+function rodadaAtual(r) { const b = blocoAtual(r); return b.rodadas ? b.rodadas[r.rodadaIndex] : b; }
+function totalRodadasBloco(r) { const b = blocoAtual(r); return b.rodadas ? b.rodadas.length : 1; }
 function sortedEquipesIdx(equipes) {
   return equipes.map((e, idx) => idx).sort((a, b) => equipes[b].pontos - equipes[a].pontos);
 }
@@ -337,6 +485,24 @@ function posicaoAntes(equipes, idx) {
   return ordem.indexOf(idx) + 1;
 }
 function downloadNothing() {}
+
+/* =========================================================
+   RELÓGIO AUTÔNOMO — deadlineAt (epoch ms) vem do Firebase;
+   cada cliente calcula localmente quanto falta. pausedRemainingMs
+   congela a contagem quando paused=true.
+   ========================================================= */
+function useContagem(deadlineAt, paused, pausedRemainingMs) {
+  const [, force] = useState(0);
+  useEffect(() => {
+    if (paused) return;
+    const id = setInterval(() => force((n) => n + 1), 250);
+    return () => clearInterval(id);
+  }, [paused, deadlineAt]);
+  if (paused) return Math.max(0, pausedRemainingMs || 0);
+  if (!deadlineAt) return 0;
+  return Math.max(0, deadlineAt - Date.now());
+}
+function abrirContagem(segundos) { return { deadlineAt: Date.now() + segundos * 1000 }; }
 
 /* =========================================================
    CONFETE
@@ -437,31 +603,20 @@ function StagePremiacaoCategoria({ categoria, muted }) {
     </div>
   `;
 }
-function StagePremiacaoVencedor({ categoria, mostrarRanking }) {
-  if (mostrarRanking) {
-    const top3 = categoria.ranking.slice(0, 3);
-    return html`
-      <div class="stage">
-        <div class="categoria-emoji">${categoria.emoji}</div>
-        <div class="display display-md">${categoria.premio}</div>
-        <div class="rank-list">
-          ${top3.map((r, i) => html`
-            <div class="rank-row ${i === 0 ? 'lider' : ''}" key=${r.nome}>
-              <div class="rank-name">${r.nome}</div>
-              <div class="rank-track"><div class="rank-bar" style=${{ background: i === 0 ? 'var(--teal)' : 'var(--teal-escuro)', transform: `scaleX(${r.votos / (top3[0].votos || 1)})` }}></div></div>
-              <span class="rank-value">${r.votos}</span>
-            </div>
-          `)}
-        </div>
-      </div>
-    `;
-  }
+function StagePremiacaoVencedor({ categoria }) {
+  const [segundo, terceiro] = categoria.ranking.slice(1, 3);
   return html`
     <div class="stage">
       <${Confetti} />
       <${Trophy} emoji=${categoria.emoji} />
       <div class="vencedor-nome pop-in">${categoria.vencedor || '—'}</div>
       <div class="vencedor-votos">${categoria.votos} ${categoria.votos === 1 ? 'voto' : 'votos'}</div>
+      ${(segundo || terceiro) ? html`
+        <div class="pod23">
+          ${segundo ? html`<div class="pod23-item"><span class="pod23-pos">2º</span> ${segundo.nome} <span class="pod23-votos">${segundo.votos} ${segundo.votos === 1 ? 'voto' : 'votos'}</span></div>` : ''}
+          ${terceiro ? html`<div class="pod23-item"><span class="pod23-pos">3º</span> ${terceiro.nome} <span class="pod23-votos">${terceiro.votos} ${terceiro.votos === 1 ? 'voto' : 'votos'}</span></div>` : ''}
+        </div>
+      ` : ''}
     </div>
   `;
 }
@@ -485,7 +640,7 @@ function StagePremiacao({ state }) {
   const categoria = p.categorias[p.index];
   if (p.fase === 'abertura') return html`<${StagePremiacaoAbertura} totalVotantes=${p.totalVotantes} />`;
   if (p.fase === 'fechamento') return html`<${StagePremiacaoFechamento} categorias=${p.categorias} />`;
-  if (p.fase === 'vencedor') return html`<${StagePremiacaoVencedor} categoria=${categoria} mostrarRanking=${p.mostrarRanking} />`;
+  if (p.fase === 'vencedor') return html`<${StagePremiacaoVencedor} categoria=${categoria} />`;
   return html`<${StagePremiacaoCategoria} categoria=${categoria} muted=${state.muted} />`;
 }
 
@@ -518,32 +673,156 @@ function PlacarBars({ equipes, prevRanking, destaque }) {
     </div>
   `;
 }
-function StageRevanchePlacarOverflow({ equipes }) {
-  return html`
-    <div class="stage">
-      <div class="display display-lg">Placar do Overflow</div>
-      <div class="stage-kicker">Antes da Revanche. Tudo pode mudar.</div>
-      <${PlacarBars} equipes=${equipes} prevRanking=${null} />
-    </div>
-  `;
+/* =========================================================
+   REVANCHE — motor autônomo (o telão é quem escreve as
+   transições de fase e as correções; painel só escreve
+   overrides manuais e paused/pausedRemainingMs; cada celular
+   só escreve sua própria entrada em apostas/respostas/
+   timeConectado).
+   ========================================================= */
+function updateRevanche(patch) {
+  const updates = {};
+  Object.entries(patch).forEach(([k, v]) => { updates[`talkflow/talkflow03/revanche/${k}`] = v; });
+  return update(dbRef(db), updates);
 }
-function StageRevancheProva({ prova, subfase, equipes, prevRanking }) {
-  if (subfase === 'C') {
-    return html`
-      <div class="stage">
-        <div class="display display-md">Placar atualizado</div>
-        <${PlacarBars} equipes=${equipes} prevRanking=${prevRanking} />
-      </div>
-    `;
-  }
-  return html`
-    <div class="stage">
-      <div class="stage-kicker">Prova</div>
-      <div class="display display-huge fade-up">${prova.nome}</div>
-      <div class="premio-explicacao">${prova.descricao}</div>
-    </div>
-  `;
+function updateTop(patch) {
+  const updates = {};
+  Object.entries(patch).forEach(([k, v]) => { updates[`talkflow/talkflow03/${k}`] = v; });
+  return update(dbRef(db), updates);
 }
+function avaliarRodada(tipo, valor, round) {
+  if (valor === undefined || valor === null) return false;
+  if (tipo === 'escolha') return avaliarEscolha(valor, round);
+  if (tipo === 'cronos') return avaliarCronos(valor, round);
+  if (tipo === 'quatro') return avaliarQuatro(valor, round);
+  if (tipo === 'pistas') return avaliarPistas(valor, round.resposta);
+  return false;
+}
+function resolverRodadaPatch(r, bloco, corretas) {
+  let primeiroAcerto = null, menorTempo = Infinity;
+  const acertosBloco = { ...r.acertosBloco };
+  const equipes = r.equipes.map((e, idx) => {
+    const correta = !!corretas[idx];
+    if (correta) acertosBloco[idx] = (acertosBloco[idx] || 0) + 1;
+    const resp = (r.respostas || {})[idx];
+    if (correta && resp && resp.tempoMs < menorTempo) { menorTempo = resp.tempoMs; primeiroAcerto = idx; }
+    let pontos = e.pontos;
+    if (bloco.tipo === 'pistas' && correta && resp) pontos += bloco.valoresPista[resp.pistaIndexNoAcerto != null ? resp.pistaIndexNoAcerto : 4];
+    return { ...e, pontos };
+  });
+  if (primeiroAcerto !== null) equipes[primeiroAcerto] = { ...equipes[primeiroAcerto], pontos: equipes[primeiroAcerto].pontos + 5 };
+  return { equipes, acertosBloco, primeiroAcerto, fase: 'resultadoRodada', deadlineAt: Date.now() + 8000 };
+}
+function useMotorRevanche(state) {
+  const r = state.revanche;
+  const ms = useContagem(r.deadlineAt, r.paused, r.pausedRemainingMs);
+  const processandoRef = useRef(false);
+
+  useEffect(() => {
+    if (state.modo !== 'revanche' || r.paused || processandoRef.current) return;
+    const bloco = blocoAtual(r);
+    const round = rodadaAtual(r);
+    const totalEquipes = r.equipes.length;
+    function avancar(patch) { processandoRef.current = true; updateRevanche(patch).finally(() => { processandoRef.current = false; }); }
+
+    if (r.fase === 'entrada') {
+      const conectados = r.timeConectado.filter(Boolean).length;
+      if (conectados >= totalEquipes && !r.deadlineAt) { updateRevanche({ deadlineAt: Date.now() + 5000 }); return; }
+      if (r.deadlineAt && ms <= 0) avancar({ fase: 'aposta', blocoIndex: 0, apostas: {}, deadlineAt: Date.now() + bloco.tempoApostaSeg * 1000 });
+      return;
+    }
+    if (r.fase === 'aposta') {
+      const todos = Object.keys(r.apostas).length >= totalEquipes;
+      if (todos || ms <= 0) {
+        const apostas = { ...r.apostas };
+        r.equipes.forEach((_, i) => { if (apostas[i] === undefined) apostas[i] = 0; });
+        avancar({ apostas, fase: 'revelacaoAposta', deadlineAt: Date.now() + 4000 });
+      }
+      return;
+    }
+    if (r.fase === 'revelacaoAposta') {
+      if (ms <= 0) avancar({ fase: 'rodada', respostas: {}, pistaIndex: 0, eliminadosPista: [], primeiroAcerto: null, deadlineAt: Date.now() + bloco.tempoRodadaSeg * 1000 });
+      return;
+    }
+    if (r.fase === 'rodada') {
+      if (bloco.tipo === 'pistas') {
+        const decorrido = (bloco.tempoRodadaSeg * 1000) - ms;
+        const passoMs = (bloco.tempoRodadaSeg * 1000) / 5;
+        const idxEsperado = Math.min(4, Math.floor(decorrido / passoMs));
+        if (idxEsperado !== r.pistaIndex) { updateRevanche({ pistaIndex: idxEsperado }); return; }
+      }
+      const entradas = Object.entries(r.respostas || {});
+      let algumAcerto = false;
+      const corretas = {};
+      entradas.forEach(([idx, resp]) => { const c = avaliarRodada(bloco.tipo, resp.valor, round); corretas[idx] = c; if (c) algumAcerto = true; });
+      const encerraCedo = bloco.tipo === 'pistas' && algumAcerto;
+      const todos = entradas.length >= totalEquipes;
+      if (encerraCedo || todos || ms <= 0) {
+        avancar(resolverRodadaPatch(r, bloco, corretas));
+      } else if (bloco.tipo === 'pistas') {
+        const novosErrados = entradas.filter(([idx]) => !corretas[idx]).map(([idx]) => Number(idx)).filter((idx) => !r.eliminadosPista.includes(idx));
+        if (novosErrados.length) updateRevanche({ eliminadosPista: [...r.eliminadosPista, ...novosErrados] });
+      }
+      return;
+    }
+    if (r.fase === 'resultadoRodada') {
+      if (ms <= 0) {
+        if (r.rodadaIndex + 1 < totalRodadasBloco(r)) {
+          avancar({ rodadaIndex: r.rodadaIndex + 1, respostas: {}, pistaIndex: 0, eliminadosPista: [], primeiroAcerto: null, fase: 'rodada', deadlineAt: Date.now() + bloco.tempoRodadaSeg * 1000 });
+        } else {
+          const prevRanking = sortedEquipesIdx(r.equipes);
+          const equipes = r.equipes.map((e, idx) => ({ ...e, pontos: e.pontos + resolverAposta(r.apostas[idx] || 0, r.acertosBloco[idx] || 0, totalRodadasBloco(r)) }));
+          avancar({ equipes, prevRanking, fase: 'resultadoBloco', deadlineAt: Date.now() + 20000 });
+        }
+      }
+      return;
+    }
+    if (r.fase === 'resultadoBloco') {
+      if (ms <= 0) {
+        if (r.blocoIndex < BLOCOS_GINCANA.length) {
+          const proximoBloco = blocoAtual({ ...r, blocoIndex: r.blocoIndex + 1 });
+          avancar({ blocoIndex: r.blocoIndex + 1, rodadaIndex: 0, apostas: {}, respostas: {}, acertosBloco: {}, fase: 'aposta', deadlineAt: Date.now() + proximoBloco.tempoApostaSeg * 1000 });
+        } else {
+          avancar({ fase: 'podio' });
+        }
+      }
+      return;
+    }
+  }, [state.modo, r.fase, r.paused, ms, r.respostas, r.apostas, r.timeConectado]);
+  return ms;
+}
+
+/* ---- bots de teste: times 1-9 jogam sozinhos quando botsAtivos=true ---- */
+function useBotsRevanche(state) {
+  const r = state.revanche;
+  const jaAgiu = useRef(new Set());
+  useEffect(() => {
+    if (state.modo !== 'revanche' || !r.botsAtivos || r.paused) return;
+    const bloco = blocoAtual(r);
+    const round = rodadaAtual(r);
+    const chave = `${r.fase}-${r.blocoIndex}-${r.rodadaIndex}`;
+    if (jaAgiu.current.has(chave)) return;
+    jaAgiu.current.add(chave);
+    for (let idx = 1; idx < r.equipes.length; idx++) {
+      const atraso = 300 + Math.random() * 900;
+      setTimeout(() => {
+        const estadoAgora = r; // aproximação: ok pra bot de teste
+        if (r.fase === 'aposta' && estadoAgora.apostas[idx] === undefined) {
+          updateRevanche({ [`apostas/${idx}`]: Math.floor(Math.random() * (bloco.tetoAposta / 5 + 1)) * 5 });
+        } else if (r.fase === 'rodada' && !(estadoAgora.respostas || {})[idx]) {
+          const acerta = Math.random() < 0.65;
+          let valor;
+          if (bloco.tipo === 'escolha') valor = acerta ? round.certaIdx : (round.certaIdx + 1) % round.opcoes.length;
+          else if (bloco.tipo === 'cronos') valor = acerta ? round.itens.map((_, i) => i) : [...round.itens.map((_, i) => i)].reverse();
+          else if (bloco.tipo === 'quatro') valor = { gruposResolvidos: acerta ? round.grupos.length : Math.floor(Math.random() * round.grupos.length) };
+          else if (bloco.tipo === 'pistas') valor = acerta ? round.resposta : 'chute errado';
+          updateRevanche({ [`respostas/${idx}`]: { valor, tempoMs: Math.floor(Math.random() * 8000), pistaIndexNoAcerto: r.pistaIndex } });
+        }
+      }, atraso);
+    }
+  }, [r.fase, r.blocoIndex, r.rodadaIndex, r.botsAtivos]);
+}
+
 function StageRevancheResultadoFinal({ equipes }) {
   const ordem = sortedEquipesIdx(equipes);
   const campeaoIdx = ordem[0];
@@ -574,11 +853,111 @@ function StageRevancheResultadoFinal({ equipes }) {
     </div>
   `;
 }
+function StageEntrada({ r, ms }) {
+  const qrRef = useRef(null);
+  const conectados = r.timeConectado.filter(Boolean).length;
+  useEffect(() => {
+    if (!window.qrcode || !qrRef.current) return;
+    const qr = window.qrcode(0, 'M');
+    qr.addData(location.origin + location.pathname + '?view=time');
+    qr.make();
+    qrRef.current.innerHTML = qr.createSvgTag(5);
+  }, []);
+  return html`
+    <div class="stage">
+      <div class="display display-lg">Escaneie pra entrar na Revanche</div>
+      <div class="qr-box" ref=${qrRef}></div>
+      <div class="stage-kicker">${conectados} de ${r.equipes.length} times conectados</div>
+      ${r.deadlineAt ? html`<div class="contagem-grande">${Math.ceil(ms / 1000)}s</div>` : html`
+        <button class="btn btn-outline btn-sm" onClick=${() => updateRevanche({ deadlineAt: Date.now() + 1000 })}>Iniciar (teste — pula a espera dos 10 times)</button>
+      `}
+    </div>
+  `;
+}
+function GridTimes({ equipes, respostas, apostas, mostrarValor }) {
+  return html`
+    <div class="bloco10-grid">
+      ${equipes.map((e, idx) => {
+        const entregou = respostas ? !!respostas[idx] : apostas ? apostas[idx] !== undefined : false;
+        return html`
+          <div class="bloco10-cel" style=${{ '--cor': COR_HEX[e.cor] }} key=${e.nome}>
+            <b>${e.nome}</b>
+            <span class="valor">${mostrarValor ? (apostas ? (apostas[idx] !== undefined ? apostas[idx] : '…') : '') : (entregou ? 'entregou' : 'jogando')}</span>
+          </div>
+        `;
+      })}
+    </div>
+  `;
+}
+function StageAposta({ r, ms, revelacao }) {
+  const bloco = blocoAtual(r);
+  return html`
+    <div class="stage">
+      <div class="stage-kicker">Agora vem</div>
+      <div class="display display-huge">${bloco.nome}</div>
+      ${!revelacao ? html`<div class="contagem-grande">${Math.ceil(ms / 1000)}s</div>` : html`<div class="sub">Apostas reveladas</div>`}
+      <${GridTimes} equipes=${r.equipes} apostas=${r.apostas} mostrarValor=${revelacao} />
+      <div class="proximo-em">teto ${bloco.tetoAposta} pontos</div>
+    </div>
+  `;
+}
+function StageRodada({ r, ms }) {
+  const bloco = blocoAtual(r);
+  const round = rodadaAtual(r);
+  return html`
+    <div class="stage">
+      <div class="pill">${bloco.nome} · rodada ${r.rodadaIndex + 1} de ${totalRodadasBloco(r)}</div>
+      ${bloco.tipo === 'escolha' ? html`<div class="display display-md">${round.pergunta}</div>` : ''}
+      ${bloco.tipo === 'cronos' ? html`<div class="display display-md">${round.titulo}</div>` : ''}
+      ${bloco.tipo === 'quatro' ? html`<div class="sub">16 palavras — ache os 4 grupos de 4</div>` : ''}
+      ${bloco.tipo === 'pistas' ? html`<div class="display display-md pista-telao">${round.pistas[r.pistaIndex]}</div><div class="sub">pista ${r.pistaIndex + 1} de 5 · vale ${bloco.valoresPista[r.pistaIndex]} pts</div>` : ''}
+      <${GridTimes} equipes=${r.equipes} respostas=${r.respostas} />
+      <div class="contagem-grande">${Math.ceil(ms / 1000)}s</div>
+    </div>
+  `;
+}
+function StageResultadoRodada({ r }) {
+  const bloco = blocoAtual(r);
+  const round = rodadaAtual(r);
+  return html`
+    <div class="stage">
+      <div class="display display-md">Resultado da rodada</div>
+      ${bloco.tipo === 'pistas' && r.primeiroAcerto !== null ? html`<div class="sub">Resposta: ${round.resposta}</div>` : ''}
+      <div class="bloco10-grid">
+        ${r.equipes.map((e, idx) => {
+          const resp = (r.respostas || {})[idx];
+          const correta = resp ? avaliarRodada(bloco.tipo, resp.valor, round) : false;
+          return html`
+            <div class="bloco10-cel ${correta ? 'acertou' : 'errou'}" style=${{ '--cor': COR_HEX[e.cor] }} key=${e.nome}>
+              <b>${e.nome}</b>
+              <span class="valor">${correta ? '✓' : '✕'}${idx === r.primeiroAcerto ? ' · 1º +5' : ''}</span>
+            </div>
+          `;
+        })}
+      </div>
+    </div>
+  `;
+}
+function StageResultadoBloco({ r }) {
+  return html`
+    <div class="stage">
+      <div class="display display-md">Resultado do bloco · placar atualizado</div>
+      <${PlacarBars} equipes=${r.equipes} prevRanking=${r.prevRanking} />
+      <div class="proximo-em">próximo bloco em alguns segundos</div>
+    </div>
+  `;
+}
 function StageRevanche({ state }) {
   const r = state.revanche;
-  if (r.fase === 'resultadoFinal') return html`<${StageRevancheResultadoFinal} equipes=${r.equipes} />`;
-  if (r.fase === 'prova') return html`<${StageRevancheProva} prova=${r.provas[r.provaIndex]} subfase=${r.subfase} equipes=${r.equipes} prevRanking=${r.prevRanking} />`;
-  return html`<${StageRevanchePlacarOverflow} equipes=${r.equipes} />`;
+  const ms = useMotorRevanche(state);
+  useBotsRevanche(state);
+  if (r.fase === 'entrada') return html`<${StageEntrada} r=${r} ms=${ms} />`;
+  if (r.fase === 'aposta') return html`<${StageAposta} r=${r} ms=${ms} revelacao=${false} />`;
+  if (r.fase === 'revelacaoAposta') return html`<${StageAposta} r=${r} ms=${ms} revelacao=${true} />`;
+  if (r.fase === 'rodada') return html`<${StageRodada} r=${r} ms=${ms} />`;
+  if (r.fase === 'resultadoRodada') return html`<${StageResultadoRodada} r=${r} />`;
+  if (r.fase === 'resultadoBloco') return html`<${StageResultadoBloco} r=${r} />`;
+  return html`<${StageRevancheResultadoFinal} equipes=${r.equipes} />`;
 }
 function StagePlacarAoVivo({ equipes }) {
   return html`
@@ -628,7 +1007,23 @@ function StageView() {
 function PremiacaoControl({ state, updateState }) {
   const p = state.premiacao;
   const categoria = p.categorias[p.index];
-  const fileRef = useRef(null);
+  const overflowRef = useRef({ nomes: {}, votos: {}, respostas: {} });
+
+  useEffect(() => {
+    const unsub = subscribeOverflow((chave, valor) => {
+      overflowRef.current = { ...overflowRef.current, [chave]: valor };
+      updateState((prev) => {
+        const totalVotantes = Object.keys(overflowRef.current.respostas || {}).length;
+        const categorias = prev.premiacao.categorias.map((c) => {
+          if (c.travado) return c;
+          const ranking = rankingFromNomesVotos(overflowRef.current.nomes[c.id], overflowRef.current.votos[c.id]);
+          return { ...c, vencedor: ranking[0] ? ranking[0].nome : '', votos: ranking[0] ? ranking[0].votos : 0, ranking };
+        });
+        return { ...prev, premiacao: { ...prev.premiacao, totalVotantes, categorias } };
+      });
+    });
+    return unsub;
+  }, []);
 
   function setCategorias(fn) {
     updateState((prev) => ({ ...prev, premiacao: { ...prev.premiacao, categorias: fn(prev.premiacao.categorias) } }));
@@ -659,37 +1054,15 @@ function PremiacaoControl({ state, updateState }) {
   function irPara(idx) {
     updateState((prev) => ({ ...prev, premiacao: { ...prev.premiacao, index: idx, fase: 'categoria', mostrarRanking: false } }));
   }
-  function toggleRanking() {
-    updateState((prev) => ({ ...prev, premiacao: { ...prev.premiacao, mostrarRanking: !prev.premiacao.mostrarRanking } }));
-  }
   function editarVencedor(value) {
-    setCategorias((cs) => cs.map((c, i) => i === p.index ? { ...c, vencedor: value } : c));
+    setCategorias((cs) => cs.map((c, i) => i === p.index ? { ...c, vencedor: value, travado: true } : c));
   }
   function editarVotos(value) {
     const votos = Number(value); if (!Number.isFinite(votos)) return;
-    setCategorias((cs) => cs.map((c, i) => i === p.index ? { ...c, votos } : c));
+    setCategorias((cs) => cs.map((c, i) => i === p.index ? { ...c, votos, travado: true } : c));
   }
-  function carregarJson(file) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const data = JSON.parse(reader.result);
-        const porId = {};
-        (data.categorias || []).forEach((c) => { porId[c.id] = c; });
-        updateState((prev) => ({
-          ...prev,
-          premiacao: {
-            ...prev.premiacao,
-            totalVotantes: data.totalVotantes || 0,
-            categorias: prev.premiacao.categorias.map((c) => {
-              const found = porId[c.id];
-              return found ? { ...c, vencedor: found.vencedor || '', votos: found.votos || 0, ranking: found.ranking || [] } : c;
-            }),
-          },
-        }));
-      } catch (e) { alert('JSON inválido: ' + e.message); }
-    };
-    reader.readAsText(file);
+  function destravar() {
+    setCategorias((cs) => cs.map((c, i) => i === p.index ? { ...c, travado: false } : c));
   }
 
   useEffect(() => {
@@ -710,13 +1083,7 @@ function PremiacaoControl({ state, updateState }) {
       ${p.fase === 'abertura' ? html`
         <div class="round-panel">
           <h2>Overflow Awards — abertura</h2>
-          <div class="subtext">Carregue o resultado da votação antes de começar (opcional — dá pra editar na mão também).</div>
-          <input ref=${fileRef} type="file" accept="application/json" style="display:none" onChange=${(e) => e.target.files[0] && carregarJson(e.target.files[0])} />
-          <div class="controls-row">
-            <button class="btn btn-outline" onClick=${() => fileRef.current.click()}>Carregar JSON da votação</button>
-            <input type="number" value=${p.totalVotantes} onInput=${(e) => updateState((prev) => ({ ...prev, premiacao: { ...prev.premiacao, totalVotantes: Number(e.target.value) || 0 } }))} />
-            <span class="subtext">pessoas votaram</span>
-          </div>
+          <div class="subtext">Lendo a votação ao vivo do Firebase (talkflow/overflowawards/real). ${p.totalVotantes} pessoas votaram até agora.</div>
           <button class="btn btn-primary btn-block" onClick=${iniciar}>Começar premiação</button>
         </div>
       ` : p.fase === 'fechamento' ? html`
@@ -734,6 +1101,7 @@ function PremiacaoControl({ state, updateState }) {
           <div class="vencedor-edit">
             <input type="text" placeholder="Nome do vencedor" value=${categoria.vencedor} onInput=${(e) => editarVencedor(e.target.value)} />
             <input type="number" value=${categoria.votos} onInput=${(e) => editarVotos(e.target.value)} />
+            ${categoria.travado ? html`<button class="btn btn-ghost btn-sm" onClick=${destravar}>↺ voltar a seguir o voto ao vivo</button>` : html`<span class="subtext">ao vivo</span>`}
           </div>
           <div class="controls-row">
             ${p.fase === 'categoria' ? html`
@@ -741,7 +1109,6 @@ function PremiacaoControl({ state, updateState }) {
               <button class="btn btn-ghost" onClick=${pular}>Pular categoria</button>
             ` : html`
               <button class="btn btn-primary" onClick=${proxima}>Próxima categoria</button>
-              <button class="btn ${p.mostrarRanking ? 'btn-primary' : 'btn-outline'} btn-sm" onClick=${toggleRanking}>${p.mostrarRanking ? 'Mostrando ranking' : 'Mostrar ranking (top 3)'}</button>
             `}
             <button class="btn btn-ghost btn-sm" disabled=${p.index === 0} onClick=${voltar}>← Voltar</button>
           </div>
@@ -787,121 +1154,66 @@ function EquipesAdjust({ equipes, onAdjust, onSetNome }) {
 }
 function RevancheControl({ state, updateState }) {
   const r = state.revanche;
-  const prova = r.provas[r.provaIndex];
+  const bloco = blocoAtual(r);
 
   function adjustPonto(idx, delta) {
-    updateState((prev) => ({ ...prev, revanche: { ...prev.revanche, equipes: prev.revanche.equipes.map((e, i) => i === idx ? { ...e, pontos: e.pontos + delta } : e) } }));
+    updateRevanche({ [`equipes/${idx}/pontos`]: r.equipes[idx].pontos + delta });
   }
-  function comecarProvas() {
-    updateState((prev) => ({ ...prev, revanche: { ...prev.revanche, fase: 'prova', provaIndex: 0, subfase: 'A' } }));
+  function togglePausa() {
+    if (!r.paused) {
+      const restante = r.deadlineAt ? Math.max(0, r.deadlineAt - Date.now()) : 0;
+      updateRevanche({ paused: true, pausedRemainingMs: restante });
+    } else {
+      updateRevanche({ paused: false, deadlineAt: Date.now() + (r.pausedRemainingMs || 0), pausedRemainingMs: null });
+    }
   }
-  function lancarResultado() {
-    const ordemAtual = sortedEquipesIdx(r.equipes);
-    const colocacao = {};
-    ordemAtual.forEach((idx, pos) => { colocacao[idx] = pos + 1; });
-    updateState((prev) => ({ ...prev, revanche: { ...prev.revanche, subfase: 'B', colocacao } }));
+  function liberarInicio() { updateRevanche({ deadlineAt: Date.now() + 1000 }); }
+  function forcarFimDeFase() { updateRevanche({ deadlineAt: Date.now() + 100 }); }
+  function voltarBloco() {
+    if (r.blocoIndex <= 0) return;
+    const anterior = blocoAtual({ ...r, blocoIndex: r.blocoIndex - 1 });
+    updateRevanche({ blocoIndex: r.blocoIndex - 1, rodadaIndex: 0, apostas: {}, respostas: {}, acertosBloco: {}, fase: 'aposta', deadlineAt: Date.now() + anterior.tempoApostaSeg * 1000 });
   }
-  function setColocacao(idx, pos) {
-    updateState((prev) => ({ ...prev, revanche: { ...prev.revanche, colocacao: { ...prev.revanche.colocacao, [idx]: Number(pos) } } }));
-  }
-  function confirmarResultado() {
-    const posicoes = Object.values(r.colocacao);
-    const valido = posicoes.length === r.equipes.length && new Set(posicoes).size === posicoes.length;
-    if (!valido) { alert('Cada equipe precisa de uma posição única, sem repetir.'); return; }
-    const prevRanking = sortedEquipesIdx(r.equipes);
-    updateState((prev) => {
-      const pr = prev.revanche;
-      const equipes = pr.equipes.map((e, idx) => {
-        const pos = pr.colocacao[idx];
-        const delta = pr.provas[pr.provaIndex].pontos[pos - 1] || 0;
-        return { ...e, pontos: e.pontos + delta };
-      });
-      return { ...prev, revanche: { ...pr, equipes, subfase: 'C', prevRanking }, sound: 'celebracao', soundSeq: prev.soundSeq + 1 };
+  function toggleBots() { updateRevanche({ botsAtivos: !r.botsAtivos }); }
+  function resetarGincana() {
+    if (!confirm('Resetar a Revanche? Os pontos voltam pro placar inicial do retiro.')) return;
+    updateRevanche({
+      equipes: r.equipes.map((e) => ({ ...e, pontos: e.pontosIniciais })),
+      timeConectado: Array(r.equipes.length).fill(null),
+      fase: 'entrada', blocoIndex: 0, rodadaIndex: 0, apostas: {}, respostas: {}, acertosBloco: {},
+      primeiroAcerto: null, prevRanking: null, deadlineAt: null, paused: false, pausedRemainingMs: null,
+      resolvido: null, pistaIndex: 0, eliminadosPista: [],
     });
   }
-  function proximaProva() {
-    updateState((prev) => {
-      const pr = prev.revanche;
-      if (pr.provaIndex >= pr.provas.length - 1) return { ...prev, revanche: { ...pr, fase: 'resultadoFinal' } };
-      return { ...prev, revanche: { ...pr, provaIndex: pr.provaIndex + 1, subfase: 'A', colocacao: {}, prevRanking: null }, sound: 'largada', soundSeq: prev.soundSeq + 1 };
-    });
-  }
-  function voltarProva() {
-    updateState((prev) => { const pr = prev.revanche; if (pr.provaIndex <= 0) return prev; return { ...prev, revanche: { ...pr, provaIndex: pr.provaIndex - 1, subfase: 'A', colocacao: {}, prevRanking: null } }; });
-  }
-  function irResultadoFinal() {
-    updateState((prev) => ({ ...prev, revanche: { ...prev.revanche, fase: 'resultadoFinal' }, sound: 'celebracao', soundSeq: prev.soundSeq + 1 }));
-  }
-  function resetarRevanche() {
-    if (!confirm('Resetar a Revanche? Os pontos voltam pro placar inicial do Overflow (as provas já lançadas são desfeitas).')) return;
-    updateState((prev) => ({
-      ...prev,
-      revanche: {
-        ...prev.revanche,
-        equipes: prev.revanche.equipes.map((e) => ({ ...e, pontos: e.pontosIniciais })),
-        provaIndex: 0, fase: 'overflowPlacar', subfase: 'A', colocacao: {}, prevRanking: null,
-      },
-    }));
-  }
-  function editarNomeProva(value) {
-    updateState((prev) => ({ ...prev, revanche: { ...prev.revanche, provas: prev.revanche.provas.map((pv, i) => i === r.provaIndex ? { ...pv, nome: value } : pv) } }));
-  }
-  function editarDescProva(value) {
-    updateState((prev) => ({ ...prev, revanche: { ...prev.revanche, provas: prev.revanche.provas.map((pv, i) => i === r.provaIndex ? { ...pv, descricao: value } : pv) } }));
-  }
+
+  useEffect(() => {
+    function onKey(e) {
+      const tag = e.target && e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (e.code === 'KeyP') togglePausa();
+      else if (e.code === 'KeyF') forcarFimDeFase();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   return html`
     <div class="control-main">
-      ${r.fase === 'overflowPlacar' ? html`
-        <div class="round-panel">
-          <h2>Placar do Overflow (antes da Revanche)</h2>
-          <div class="subtext">Primeira tela da Parte 2. Mostra o placar que veio do retiro.</div>
-          <button class="btn btn-primary btn-block" onClick=${comecarProvas}>Começar as provas</button>
+      <div class="round-panel">
+        <h2>${bloco.nome} <span class="subtext">· fase: ${r.fase} · rodada ${r.rodadaIndex + 1} de ${totalRodadasBloco(r)}</span></h2>
+        <div class="subtext">${r.timeConectado.filter(Boolean).length} de ${r.equipes.length} times conectados · apostas: ${Object.keys(r.apostas).length}/${r.equipes.length} · respostas: ${Object.keys(r.respostas).length}/${r.equipes.length}</div>
+        <div class="controls-row">
+          <button class="btn ${r.paused ? 'btn-primary' : 'btn-outline'}" onClick=${togglePausa}>${r.paused ? '▶ Retomar' : '⏸ PAUSAR'}</button>
+          <button class="btn btn-outline btn-sm" onClick=${liberarInicio}>Liberar início (sem esperar 10 times)</button>
+          <button class="btn btn-outline btn-sm" onClick=${forcarFimDeFase}>Forçar fim da fase atual</button>
         </div>
-      ` : r.fase === 'resultadoFinal' ? html`
-        <div class="round-panel">
-          <h2>Resultado final no telão</h2>
-          <div class="subtext">Pódio com campeão e posição anterior.</div>
-          <button class="btn btn-outline btn-sm" onClick=${() => updateState((prev) => ({ ...prev, revanche: { ...prev.revanche, fase: 'prova' } }))}>← Voltar pras provas</button>
+        <div class="controls-row">
+          <button class="btn btn-ghost btn-sm" disabled=${r.blocoIndex === 0} onClick=${voltarBloco}>← Bloco anterior</button>
+          <button class="btn btn-outline btn-sm" onClick=${() => updateTop({ modo: 'placar' })}>Mostrar placar ao vivo</button>
+          <button class="btn ${r.botsAtivos ? 'btn-primary' : 'btn-outline'} btn-sm" onClick=${toggleBots}>${r.botsAtivos ? 'Bots: ligados (teste)' : 'Ativar bots (teste)'}</button>
+          <button class="btn btn-ghost btn-sm" onClick=${resetarGincana}>Resetar gincana</button>
         </div>
-      ` : html`
-        <div class="round-panel">
-          <div class="categoria-nav">
-            <span class="pos">Prova ${r.provaIndex + 1} de ${r.provas.length}</span>
-          </div>
-          <div class="vencedor-edit">
-            <input type="text" placeholder="Nome da prova" value=${prova.nome} onInput=${(e) => editarNomeProva(e.target.value)} />
-          </div>
-          <input type="text" placeholder="Descrição" value=${prova.descricao} onInput=${(e) => editarDescProva(e.target.value)} />
-          ${r.subfase === 'A' ? html`
-            <div class="controls-row">
-              <button class="btn btn-primary" onClick=${lancarResultado}>Lançar resultado</button>
-              <button class="btn btn-ghost btn-sm" disabled=${r.provaIndex === 0} onClick=${voltarProva}>← Prova anterior</button>
-            </div>
-          ` : r.subfase === 'B' ? html`
-            <div class="posicao-grid">
-              ${r.equipes.map((e, idx) => html`
-                <div class="posicao-row" style=${{ '--cor': COR_HEX[e.cor] }} key=${idx}>
-                  <span class="nome">${e.nome}</span>
-                  <select value=${r.colocacao[idx] || ''} onChange=${(ev) => setColocacao(idx, ev.target.value)}>
-                    <option value="">posição…</option>
-                    ${r.equipes.map((_, p2) => html`<option key=${p2} value=${p2 + 1}>${p2 + 1}º</option>`)}
-                  </select>
-                </div>
-              `)}
-            </div>
-            <button class="btn btn-primary btn-block" onClick=${confirmarResultado}>Confirmar resultado</button>
-          ` : html`
-            <div class="controls-row">
-              <button class="btn btn-primary" onClick=${proximaProva}>${r.provaIndex >= r.provas.length - 1 ? 'Ir pro resultado final' : 'Próxima prova'}</button>
-            </div>
-          `}
-        </div>
-      `}
-      <div class="controls-row">
-        <button class="btn btn-outline btn-sm" onClick=${() => updateState((prev) => ({ ...prev, modo: 'placar' }))}>Mostrar placar ao vivo</button>
-        <button class="btn btn-outline btn-sm" onClick=${irResultadoFinal}>Ir direto pro resultado final</button>
-        <button class="btn btn-ghost btn-sm" onClick=${resetarRevanche}>Resetar revanche</button>
+        <div class="kbd-hint"><kbd>P</kbd> pausar/retomar · <kbd>F</kbd> forçar fim da fase</div>
       </div>
       <${EquipesAdjust} equipes=${r.equipes} onAdjust=${adjustPonto} />
     </div>
@@ -920,7 +1232,15 @@ function ControlView() {
     fetchInitialState().then((s) => { if (!cancelled) { setState(s); setLoaded(true); } });
     return () => { cancelled = true; };
   }, []);
+  // assina ao vivo depois do primeiro fetch — o telão e os celulares escrevem
+  // continuamente na Revanche, então o painel precisa ver isso em tempo real
+  // (não só uma vez), senão uma ação do painel sobrescreveria o progresso deles.
+  useEffect(() => { if (loaded) return subscribeState(setState); }, [loaded]);
 
+  // Fora da Revanche (modo/muted, premiação), ainda é seguro sobrescrever a
+  // árvore inteira: só o painel escreve nesses campos. A Revanche em si usa
+  // updateRevanche()/updateTop() (patch por caminho) em vez disso, porque o
+  // telão e os celulares escrevem lá ao mesmo tempo.
   const updateState = useCallback((updater) => {
     setState((prev) => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
@@ -936,17 +1256,208 @@ function ControlView() {
       <div class="control-header">
         <div class="control-title">TalkFlow 03 · Controle</div>
         <div class="mode-tabs">
-          <button class="mode-tab ${state.modo === 'premiacao' ? 'active' : ''}" onClick=${() => updateState((prev) => ({ ...prev, modo: 'premiacao' }))}>Premiação</button>
-          <button class="mode-tab ${state.modo === 'revanche' ? 'active' : ''}" onClick=${() => updateState((prev) => ({ ...prev, modo: 'revanche' }))}>Revanche</button>
-          <button class="mode-tab ${state.modo === 'placar' ? 'active' : ''}" onClick=${() => updateState((prev) => ({ ...prev, modo: 'placar' }))}>Placar</button>
+          <button class="mode-tab ${state.modo === 'premiacao' ? 'active' : ''}" onClick=${() => updateTop({ modo: 'premiacao' })}>Premiação</button>
+          <button class="mode-tab ${state.modo === 'revanche' ? 'active' : ''}" onClick=${() => updateTop({ modo: 'revanche' })}>Revanche</button>
+          <button class="mode-tab ${state.modo === 'placar' ? 'active' : ''}" onClick=${() => updateTop({ modo: 'placar' })}>Placar</button>
         </div>
         <div class="header-actions">
-          <button class="btn btn-ghost btn-sm" onClick=${() => updateState((prev) => ({ ...prev, muted: !prev.muted }))}>${state.muted ? 'Som: desligado' : 'Som: ligado'}</button>
+          <button class="btn btn-ghost btn-sm" onClick=${() => updateTop({ muted: !state.muted })}>${state.muted ? 'Som: desligado' : 'Som: ligado'}</button>
         </div>
       </div>
       ${state.modo === 'premiacao' ? html`<${PremiacaoControl} state=${state} updateState=${updateState} />`
         : state.modo === 'revanche' ? html`<${RevancheControl} state=${state} updateState=${updateState} />`
-        : html`<div class="control-main"><div class="round-panel"><h2>Placar ao vivo no telão</h2><div class="subtext">Volte pra aba Revanche pra seguir as provas.</div></div><${EquipesAdjust} equipes=${state.revanche.equipes} onAdjust=${(idx, delta) => updateState((prev) => ({ ...prev, revanche: { ...prev.revanche, equipes: prev.revanche.equipes.map((e, i) => i === idx ? { ...e, pontos: e.pontos + delta } : e) } }))} /></div>`}
+        : html`<div class="control-main"><div class="round-panel"><h2>Placar ao vivo no telão</h2><div class="subtext">Volte pra aba Revanche pra controlar a gincana.</div></div><${EquipesAdjust} equipes=${state.revanche.equipes} onAdjust=${(idx, delta) => updateRevanche({ ['equipes/' + idx + '/pontos']: state.revanche.equipes[idx].pontos + delta })} /></div>`}
+    </div>
+  `;
+}
+
+/* =========================================================
+   CELULAR DA EQUIPE (?view=time)
+   ========================================================= */
+function getTimeId() {
+  const KEY = 'talkflow03TimeId';
+  let id = localStorage.getItem(KEY);
+  if (!id) { id = 't_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem(KEY, id); }
+  return id;
+}
+function TimeCorPicker({ equipes, timeConectado, myId }) {
+  function escolher(idx) {
+    if (timeConectado[idx]) return;
+    update(dbRef(db), { [`talkflow/talkflow03/revanche/timeConectado/${idx}`]: myId });
+  }
+  return html`
+    <div class="time">
+      <div class="time-body">
+        <div class="display display-md" style="text-align:center;">Toque na cor da sua equipe</div>
+        <div class="cor-grid">
+          ${equipes.map((e, idx) => timeConectado[idx] ? '' : html`
+            <button class="cor-btn" style=${{ background: COR_HEX[e.cor] }} onClick=${() => escolher(idx)} key=${e.nome}>${e.nome}</button>
+          `)}
+        </div>
+      </div>
+    </div>
+  `;
+}
+function TimeAposta({ r, equipeIdx }) {
+  const bloco = blocoAtual(r);
+  const jaApostou = r.apostas[equipeIdx] !== undefined;
+  const [valor, setValor] = useState(0);
+  function apostar() { update(dbRef(db), { [`talkflow/talkflow03/revanche/apostas/${equipeIdx}`]: valor }); }
+  return html`
+    <div class="time-body">
+      <div class="sub" style="text-align:center;">Quanto vocês apostam no bloco <b>${bloco.nome}</b>?</div>
+      <div class="stepper">
+        <button disabled=${jaApostou} onClick=${() => setValor((v) => Math.max(0, v - 5))}>−</button>
+        <div class="val">${jaApostou ? r.apostas[equipeIdx] : valor}</div>
+        <button disabled=${jaApostou} onClick=${() => setValor((v) => Math.min(bloco.tetoAposta, v + 5))}>+</button>
+      </div>
+      <button class="btn btn-primary btn-block" disabled=${jaApostou} onClick=${apostar}>Apostar</button>
+      ${jaApostou ? html`<div class="sub" style="text-align:center;">Aposta enviada. Aguardando os outros times…</div>` : ''}
+    </div>
+  `;
+}
+function TimeCronosList({ itens, disabled, onChange }) {
+  const [lista, setLista] = useState(() => shuffle(itens));
+  const dragIdx = useRef(null);
+  function onDown(i) { if (!disabled) dragIdx.current = i; }
+  function onEnter(i) {
+    if (disabled || dragIdx.current === null || dragIdx.current === i) return;
+    setLista((l) => { const n = [...l]; const [item] = n.splice(dragIdx.current, 1); n.splice(i, 0, item); dragIdx.current = i; return n; });
+  }
+  function onUp() { dragIdx.current = null; }
+  useEffect(() => { onChange(lista.map((it) => it.i)); }, [lista]);
+  return html`
+    <div class="cronos-time-list" onPointerUp=${onUp}>
+      ${lista.map((item, i) => html`
+        <div class="cronos-time-item" key=${item.i} onPointerDown=${() => onDown(i)} onPointerEnter=${() => onEnter(i)}>
+          <span class="alca">⠿</span><span>${i + 1}. ${item.v}</span>
+        </div>
+      `)}
+    </div>
+  `;
+}
+function shuffle(arr) {
+  const a = arr.map((v, i) => ({ v, i }));
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function TimeRodada({ r, equipeIdx }) {
+  const bloco = blocoAtual(r);
+  const round = rodadaAtual(r);
+  const jaRespondeu = !!(r.respostas || {})[equipeIdx];
+  const iniciadaEmRef = useRef(Date.now());
+  useEffect(() => { iniciadaEmRef.current = Date.now(); }, [r.blocoIndex, r.rodadaIndex]);
+  function enviar(valor, extra) {
+    if (jaRespondeu) return;
+    update(dbRef(db), { [`talkflow/talkflow03/revanche/respostas/${equipeIdx}`]: { valor, tempoMs: Date.now() - iniciadaEmRef.current, ...(extra || {}) } });
+  }
+
+  if (bloco.tipo === 'escolha') {
+    const [sel, setSel] = useState(null);
+    return html`
+      <div class="time-body">
+        <div class="display display-md" style="font-size:1.3rem;">${round.pergunta}</div>
+        <div class="opcoes-time">
+          ${round.opcoes.map((op, i) => html`
+            <button class="opcao-time ${sel === i ? 'sel' : ''}" disabled=${jaRespondeu} onClick=${() => { setSel(i); enviar(i); }} key=${i}>${op}</button>
+          `)}
+        </div>
+        ${jaRespondeu ? html`<div class="sub">Enviado! Aguardando os outros times…</div>` : ''}
+      </div>
+    `;
+  }
+  if (bloco.tipo === 'cronos') {
+    const [tentativas, setTentativas] = useState(3);
+    const ordemRef = useRef([]);
+    return html`
+      <div class="time-body">
+        <div class="sub">${round.titulo} — arraste pela ordem certa. Tentativas: ${tentativas}</div>
+        <${TimeCronosList} itens=${round.itens} disabled=${jaRespondeu} onChange=${(ordem) => { ordemRef.current = ordem; }} />
+        <button class="btn btn-primary" disabled=${jaRespondeu || tentativas <= 0} onClick=${() => {
+          const certo = avaliarCronos(ordemRef.current, round);
+          if (certo || tentativas <= 1) enviar(ordemRef.current);
+          else setTentativas((t) => t - 1);
+        }}>Confirmar ordem</button>
+        ${jaRespondeu ? html`<div class="sub">Enviado! Aguardando os outros times…</div>` : ''}
+      </div>
+    `;
+  }
+  if (bloco.tipo === 'quatro') {
+    const palavras = useMemo(() => shuffle(round.grupos.flatMap((g, gi) => g.palavras.map((p) => ({ p, gi })))), [r.blocoIndex, r.rodadaIndex]);
+    const [sel, setSel] = useState([]);
+    const [resolvidos, setResolvidos] = useState([]);
+    const [chances, setChances] = useState(7);
+    function toggle(idx) {
+      if (jaRespondeu || resolvidos.some((g) => g.includes(idx))) return;
+      setSel((s) => s.includes(idx) ? s.filter((x) => x !== idx) : s.length < 4 ? [...s, idx] : s);
+    }
+    function confirmar() {
+      if (sel.length !== 4) return;
+      const gis = sel.map((i) => palavras[i].v.gi);
+      const certo = gis.every((g) => g === gis[0]);
+      if (certo) {
+        const novos = [...resolvidos, sel];
+        setResolvidos(novos); setSel([]);
+        if (novos.length === round.grupos.length) enviar({ gruposResolvidos: novos.length });
+      } else {
+        const restam = chances - 1; setChances(restam); setSel([]);
+        if (restam <= 0) enviar({ gruposResolvidos: resolvidos.length });
+      }
+    }
+    const corGrupo = (idx) => { const r2 = resolvidos.findIndex((g) => g.includes(idx)); return r2 >= 0 ? `solved${palavras[idx].v.gi}` : ''; };
+    return html`
+      <div class="time-body">
+        <div class="sub">Toque em 4 palavras com algo em comum. Chances: ${chances}</div>
+        <div class="quatro-time-grid">
+          ${palavras.map((item, idx) => html`<div class="quatro-time-cel ${sel.includes(idx) ? 'sel' : ''} ${corGrupo(idx)}" key=${idx} onClick=${() => toggle(idx)}>${item.v.p}</div>`)}
+        </div>
+        <button class="btn btn-primary" disabled=${jaRespondeu || sel.length !== 4} onClick=${confirmar}>Confirmar grupo</button>
+        ${jaRespondeu ? html`<div class="sub">Enviado! Aguardando os outros times…</div>` : ''}
+      </div>
+    `;
+  }
+  if (bloco.tipo === 'pistas') {
+    const eliminado = r.eliminadosPista.includes(equipeIdx);
+    const [chute, setChute] = useState('');
+    return html`
+      <div class="time-body">
+        <div class="pista-time-box">${round.pistas[r.pistaIndex]}</div>
+        <input class="pista-input" placeholder="Quem é / o que é?" value=${chute} disabled=${eliminado || jaRespondeu}
+          onInput=${(e) => setChute(e.target.value)} />
+        <button class="btn btn-primary" disabled=${eliminado || jaRespondeu || !chute.trim()}
+          onClick=${() => enviar(chute, { pistaIndexNoAcerto: r.pistaIndex })}>Responder</button>
+        ${eliminado ? html`<div class="sub">Errou — fora da rodada.</div>` : jaRespondeu ? html`<div class="sub">Resposta enviada.</div>` : ''}
+      </div>
+    `;
+  }
+  return html`<div class="time-body"><div class="sub">Aguardando…</div></div>`;
+}
+function TimeView() {
+  const [state, setState] = useState(null);
+  const myId = useMemo(() => getTimeId(), []);
+  useEffect(() => { fetchInitialState().then(setState); return subscribeState(setState); }, []);
+  if (!state) return html`<div class="time"><div class="time-body"><div class="pulse sub">Carregando…</div></div></div>`;
+  const r = state.revanche;
+  const equipeIdx = r.timeConectado.findIndex((id) => id === myId);
+
+  if (equipeIdx === -1) return html`<${TimeCorPicker} equipes=${r.equipes} timeConectado=${r.timeConectado} myId=${myId} />`;
+  const minhaEquipe = r.equipes[equipeIdx];
+
+  let corpo;
+  if (r.fase === 'entrada') corpo = html`<div class="time-body"><div class="sub" style="text-align:center;">Aguardando o início da Revanche…</div></div>`;
+  else if (r.fase === 'aposta') corpo = html`<${TimeAposta} r=${r} equipeIdx=${equipeIdx} />`;
+  else if (r.fase === 'revelacaoAposta') corpo = html`<div class="time-body"><div class="sub" style="text-align:center;">Apostas reveladas — próxima rodada já vem.</div></div>`;
+  else if (r.fase === 'rodada') corpo = html`<${TimeRodada} r=${r} equipeIdx=${equipeIdx} />`;
+  else if (r.fase === 'resultadoRodada' || r.fase === 'resultadoBloco') corpo = html`<div class="time-body"><div class="sub" style="text-align:center;">Vejam o telão!</div></div>`;
+  else corpo = html`<div class="time-body"><div class="sub" style="text-align:center;">Fim da Revanche — vejam o telão!</div></div>`;
+
+  return html`
+    <div class="time">
+      <div class="time-header">
+        <span class="time-pill" style=${{ background: COR_HEX[minhaEquipe.cor] }}>${minhaEquipe.nome}</span>
+        <span class="time-pontos">${minhaEquipe.pontos} pts</span>
+      </div>
+      ${corpo}
     </div>
   `;
 }
@@ -960,7 +1471,7 @@ function App() {
     <div>
       <div class="bg-layer bg-waves"></div>
       <div class="bg-layer bg-grain"></div>
-      ${view === 'telao' ? html`<${StageView} />` : view === 'painel' ? html`<${ControlView} />` : html`<${Landing} />`}
+      ${view === 'telao' ? html`<${StageView} />` : view === 'painel' ? html`<${ControlView} />` : view === 'time' ? html`<${TimeView} />` : html`<${Landing} />`}
     </div>
   `;
 }
