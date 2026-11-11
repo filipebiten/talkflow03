@@ -299,7 +299,7 @@ const BLOCOS_GINCANA = [
     tipo: 'cronos', nome: 'CRONOS', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 90,
     rodadas: [
       { titulo: 'A ordem de um culto do retiro', itens: ['Abertura e oração inicial', 'Louvor animado', 'Dinâmica de integração', 'Palavra', 'Avisos e oração final'] },
-      { titulo: 'A ordem do fim de semana', itens: ['Confecção das bandeiras dos times', 'Gincana Bíblica Indoor', 'Culto de abertura, sexta à noite', 'Circuito Físico e Batalha Naval', 'Premiação da gincana, domingo'] },
+      { titulo: 'A ordem do fim de semana', itens: ['Culto de abertura, sexta à noite', 'Confecção das bandeiras dos times', 'Gincana Bíblica Indoor', 'Circuito Físico e Batalha Naval', 'Premiação da gincana, domingo'] },
       { titulo: 'A visão do vale de ossos secos (Ezequiel 37)', itens: ['Os ossos se juntam, osso com osso', 'Tendões e carne cobrem os ossos', 'A pele cobre tudo por cima', 'O Espírito entra neles', 'Os mortos vivem e se levantam, um exército enorme'] },
     ],
   },
@@ -353,7 +353,16 @@ function avaliarCronos(ordemEnviada, round) { if (!Array.isArray(ordemEnviada) |
 // o celular já valida cada grupo contra round.grupos ao vivo (via a origem de cada
 // palavra sorteada) — aqui só confirmamos que achou os 4 grupos inteiros.
 function avaliarQuatro(valor, round) { return !!valor && valor.gruposResolvidos === round.grupos.length; }
-function avaliarPistas(texto, resposta) { return normalizeTexto(texto) === normalizeTexto(resposta); }
+function avaliarPistas(texto, resposta) {
+  const chute = normalizeTexto(texto);
+  const certa = normalizeTexto(resposta);
+  if (chute === certa) return true;
+  // aceita variações como "samaritana" ou "mulher samaritana" pra resposta
+  // "a mulher samaritana" — exige só as palavras com peso (ignora artigos).
+  const stop = new Set(['a', 'o', 'e', 'de', 'da', 'do']);
+  const palavrasCerta = certa.split(' ').filter((w) => w && !stop.has(w));
+  return palavrasCerta.length > 0 && palavrasCerta.every((w) => chute.includes(w));
+}
 function resolverAposta(aposta, acertos, totalRodadas) { return (acertos * 2 >= totalRodadas) ? aposta : -Math.floor(aposta / 2); }
 
 /* =========================================================
@@ -853,7 +862,7 @@ function useMotorRevanche(state) {
           const proximoBloco = blocoAtual({ ...r, blocoIndex: r.blocoIndex + 1 });
           avancar({ blocoIndex: r.blocoIndex + 1, rodadaIndex: 0, apostas: {}, respostas: {}, acertosBloco: {}, fase: 'aposta', deadlineAt: Date.now() + proximoBloco.tempoApostaSeg * 1000 });
         } else {
-          avancar({ fase: 'podio' });
+          avancar({ fase: 'podio', podioStep: 0 });
         }
       }
       return;
@@ -1175,6 +1184,9 @@ function PremiacaoControl({ state, updateState }) {
   function irPara(idx) {
     updateState((prev) => ({ ...prev, premiacao: { ...prev.premiacao, index: idx, fase: 'categoria', mostrarRanking: false } }));
   }
+  function voltarAbertura() {
+    updateState((prev) => ({ ...prev, premiacao: { ...prev.premiacao, fase: 'abertura' } }));
+  }
   function editarVencedor(value) {
     setCategorias((cs) => cs.map((c, i) => i === p.index ? { ...c, vencedor: value, travado: true } : c));
   }
@@ -1212,6 +1224,7 @@ function PremiacaoControl({ state, updateState }) {
           <h2>Fechamento no telão</h2>
           <div class="subtext">Todos os 15 vencedores em grade.</div>
           <button class="btn btn-outline btn-sm" onClick=${() => irPara(p.categorias.length - 1)}>← Voltar pra última categoria</button>
+          <button class="btn btn-ghost btn-sm" onClick=${voltarAbertura}>↺ Voltar pra abertura</button>
         </div>
       ` : html`
         <div class="round-panel">
@@ -1232,6 +1245,7 @@ function PremiacaoControl({ state, updateState }) {
               <button class="btn btn-primary" onClick=${proxima}>Próxima categoria</button>
             `}
             <button class="btn btn-ghost btn-sm" disabled=${p.index === 0} onClick=${voltar}>← Voltar</button>
+            <button class="btn btn-ghost btn-sm" onClick=${voltarAbertura}>↺ Voltar pra abertura</button>
           </div>
         </div>
       `}
