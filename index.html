@@ -289,6 +289,7 @@ const EQUIPES_INICIAIS = [
 const BLOCOS_GINCANA = [
   {
     tipo: 'escolha', nome: 'O QUE FICOU', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 45,
+    explicacao: 'Uma pergunta de múltipla escolha sobre o retiro, 4 alternativas. A equipe toda decide junto e toca na opção certa — quem acertar pontua na rodada.',
     rodadas: [
       { pergunta: 'Qual era o tema do OVERFLOW 2026?', opcoes: ['Rios de Água Viva', 'Novos Começos', 'Identidade', 'Velhos Fins'], certaIdx: 1 },
       { pergunta: 'Onde aconteceu o retiro?', opcoes: ['Recanto', 'Sítio Boa Esperança', 'Chácara Aprisco', 'Chácara Betel'], certaIdx: 2 },
@@ -297,6 +298,7 @@ const BLOCOS_GINCANA = [
   },
   {
     tipo: 'cronos', nome: 'CRONOS', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 90,
+    explicacao: 'Coloquem os itens na ordem certa. No celular dá pra arrastar cada item pela lista, ou usar as setas ▲▼ pra mover um de cada vez.',
     rodadas: [
       { titulo: 'A ordem de um culto do retiro', itens: ['Abertura e oração inicial', 'Louvor animado', 'Dinâmica de integração', 'Palavra', 'Avisos e oração final'] },
       { titulo: 'A ordem do fim de semana', itens: ['Culto de abertura, sexta à noite', 'Confecção das bandeiras dos times', 'Gincana Bíblica Indoor', 'Circuito Físico e Batalha Naval', 'Premiação da gincana, domingo'] },
@@ -305,6 +307,7 @@ const BLOCOS_GINCANA = [
   },
   {
     tipo: 'quatro', nome: 'QUATRO POR QUATRO', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 120,
+    explicacao: '16 palavras escondem 4 grupos de 4 com algo em comum. Toquem em 4 palavras pra formar um grupo — acertando ou errando, ele sai da grade e sobram menos palavras pros próximos grupos.',
     rodadas: [
       { grupos: [
         { tema: 'Cores de equipe do retiro', palavras: ['CINZA', 'LILÁS', 'LARANJA', 'ROSA'] },
@@ -328,6 +331,7 @@ const BLOCOS_GINCANA = [
   },
   {
     tipo: 'pistas', nome: 'PISTAS', tetoAposta: 60, tempoApostaSeg: 45, tempoRodadaSeg: 90,
+    explicacao: 'Uma pergunta, 6 pistas. Cada equipe revela as próprias pistas no próprio ritmo, uma de cada vez — quanto mais pistas vocês virem, menos vale acertar. Quem responder certo primeiro encerra a rodada pra todo mundo.',
     rodadas: [
       { resposta: 'EZEQUIEL', pistas: ['Ele era sacerdote, mas nunca chegou a servir no templo', 'Profetizou longe de casa, com o povo arrancado da própria terra', 'Deus mandou ele falar com um vale cheio de ossos secos', 'Deus prometeu trocar um coração por outro', 'O livro dele foi o texto do nosso retiro', '"Removerei seu coração de pedra"'] },
       { resposta: 'NICODEMOS', pistas: ['Era um homem respeitado, de uma posição importante', 'Fazia parte do grupo religioso mais rigoroso do seu tempo', 'Procurou Jesus de noite, quando ninguém estava vendo', 'Jesus se espantou que ele, sendo mestre, não soubesse de uma coisa', 'Ouviu que era necessário nascer de novo', 'A conversa inteira está em João 3'] },
@@ -338,6 +342,7 @@ const BLOCOS_GINCANA = [
 ];
 const FINAL_GINCANA = {
   tipo: 'cronos', nome: 'EZEQUIEL EMBARALHADO', tetoAposta: 120, tempoApostaSeg: 45, tempoRodadaSeg: 180,
+  explicacao: 'A última prova: um versículo de Ezequiel 36 embaralhado em 12 frases. Coloquem na ordem certa pra fechar a Revanche com a maior pontuação possível.',
   itens: [
     'Então aspergirei sobre vocês água pura,', 'e ficarão limpos.', 'Eu os purificarei de sua impureza',
     'e sua adoração a ídolos.', 'Eu lhes darei um novo coração', 'e colocarei em vocês um novo espírito.',
@@ -364,6 +369,11 @@ function avaliarPistas(texto, resposta) {
   return palavrasCerta.length > 0 && palavrasCerta.every((w) => chute.includes(w));
 }
 function resolverAposta(aposta, acertos, totalRodadas) { return (acertos * 2 >= totalRodadas) ? aposta : -Math.floor(aposta / 2); }
+function textoRegraAposta(r) {
+  const total = totalRodadasBloco(r);
+  const minAcertos = Math.ceil(total / 2);
+  return `Acertem ${minAcertos} de ${total} rodada${total > 1 ? 's' : ''} (ou mais) e dobram a aposta. Menos que isso, perdem metade do que apostaram.`;
+}
 
 /* =========================================================
    SINCRONIZAÇÃO — Firebase Realtime Database. Mesmo projeto
@@ -812,7 +822,11 @@ function useMotorRevanche(state) {
     if (r.fase === 'entrada') {
       const conectados = r.timeConectado.filter(Boolean).length;
       if (conectados >= totalEquipes && !r.deadlineAt) { updateRevanche({ deadlineAt: Date.now() + 5000 }); return; }
-      if (r.deadlineAt && ms <= 0) avancar({ fase: 'aposta', blocoIndex: 0, apostas: {}, deadlineAt: Date.now() + bloco.tempoApostaSeg * 1000 });
+      if (r.deadlineAt && ms <= 0) avancar({ fase: 'explicacao', blocoIndex: 0, deadlineAt: Date.now() + 15000 });
+      return;
+    }
+    if (r.fase === 'explicacao') {
+      if (ms <= 0) avancar({ fase: 'aposta', apostas: {}, deadlineAt: Date.now() + bloco.tempoApostaSeg * 1000 });
       return;
     }
     if (r.fase === 'aposta') {
@@ -850,19 +864,17 @@ function useMotorRevanche(state) {
         } else {
           const prevRanking = sortedEquipesIdx(r.equipes);
           const equipes = r.equipes.map((e, idx) => ({ ...e, pontos: e.pontos + resolverAposta(r.apostas[idx] || 0, r.acertosBloco[idx] || 0, totalRodadasBloco(r)) }));
-          avancar({ equipes, prevRanking, fase: 'resultadoBloco', deadlineAt: Date.now() + 20000 });
+          const ehUltimoBloco = r.blocoIndex >= BLOCOS_GINCANA.length;
+          if (ehUltimoBloco) avancar({ equipes, prevRanking, fase: 'podio', podioStep: 0 });
+          else avancar({ equipes, prevRanking, fase: 'resultadoBloco', deadlineAt: Date.now() + 20000 });
         }
       }
       return;
     }
     if (r.fase === 'resultadoBloco') {
       if (ms <= 0) {
-        if (r.blocoIndex < BLOCOS_GINCANA.length) {
-          const proximoBloco = blocoAtual({ ...r, blocoIndex: r.blocoIndex + 1 });
-          avancar({ blocoIndex: r.blocoIndex + 1, rodadaIndex: 0, apostas: {}, respostas: {}, acertosBloco: {}, fase: 'aposta', deadlineAt: Date.now() + proximoBloco.tempoApostaSeg * 1000 });
-        } else {
-          avancar({ fase: 'podio', podioStep: 0 });
-        }
+        const proximoBloco = blocoAtual({ ...r, blocoIndex: r.blocoIndex + 1 });
+        avancar({ blocoIndex: r.blocoIndex + 1, rodadaIndex: 0, apostas: {}, respostas: {}, acertosBloco: {}, fase: 'explicacao', deadlineAt: Date.now() + 15000 });
       }
       return;
     }
@@ -984,12 +996,24 @@ function GridTimesPistas({ equipes, respostas, eliminadosPista, pistasVistas }) 
     </div>
   `;
 }
+function StageExplicacaoProva({ r, ms }) {
+  const bloco = blocoAtual(r);
+  return html`
+    <div class="stage">
+      <div class="stage-kicker">Próxima prova</div>
+      <div class="display display-huge">${bloco.nome}</div>
+      <div class="sub" style="max-width:720px;text-align:center;">${bloco.explicacao}</div>
+      <div class="contagem-grande">${Math.ceil(ms / 1000)}s</div>
+    </div>
+  `;
+}
 function StageAposta({ r, ms, revelacao }) {
   const bloco = blocoAtual(r);
   return html`
     <div class="stage">
-      <div class="stage-kicker">Agora vem</div>
+      <div class="stage-kicker">Façam suas apostas</div>
       <div class="display display-huge">${bloco.nome}</div>
+      <div class="sub">${textoRegraAposta(r)}</div>
       ${!revelacao ? html`<div class="contagem-grande">${Math.ceil(ms / 1000)}s</div>` : html`<div class="sub">Apostas reveladas</div>`}
       <${GridTimes} equipes=${r.equipes} apostas=${r.apostas} mostrarValor=${revelacao} />
       <div class="proximo-em">teto ${bloco.tetoAposta} pontos</div>
@@ -1049,6 +1073,7 @@ function StageRevanche({ state }) {
   const r = state.revanche;
   const ms = useMotorRevanche(state);
   if (r.fase === 'entrada') return html`<${StageEntrada} r=${r} ms=${ms} />`;
+  if (r.fase === 'explicacao') return html`<${StageExplicacaoProva} r=${r} ms=${ms} />`;
   if (r.fase === 'aposta') return html`<${StageAposta} r=${r} ms=${ms} revelacao=${false} />`;
   if (r.fase === 'revelacaoAposta') return html`<${StageAposta} r=${r} ms=${ms} revelacao=${true} />`;
   if (r.fase === 'rodada') return html`<${StageRodada} r=${r} ms=${ms} />`;
@@ -1433,6 +1458,7 @@ function TimeAposta({ r, equipeIdx }) {
   return html`
     <div class="time-body">
       <div class="sub" style="text-align:center;">Quanto vocês apostam no bloco <b>${bloco.nome}</b>?</div>
+      <div class="sub" style="text-align:center;font-size:.85rem;">${textoRegraAposta(r)}</div>
       <div class="stepper">
         <button disabled=${jaApostou} onClick=${() => setValor((v) => Math.max(0, v - 5))}>−</button>
         <div class="val">${jaApostou ? r.apostas[equipeIdx] : valor}</div>
@@ -1636,6 +1662,7 @@ function TimeView() {
 
   let corpo;
   if (r.fase === 'entrada') corpo = html`<div class="time-body"><div class="sub" style="text-align:center;">Aguardando o início da Revanche…</div></div>`;
+  else if (r.fase === 'explicacao') corpo = html`<div class="time-body"><div class="sub" style="text-align:center;">Olhe para o telão!</div></div>`;
   else if (r.fase === 'aposta') corpo = html`<${TimeAposta} r=${r} equipeIdx=${equipeIdx} />`;
   else if (r.fase === 'revelacaoAposta') corpo = html`<div class="time-body"><div class="sub" style="text-align:center;">Apostas reveladas — próxima rodada já vem.</div></div>`;
   else if (r.fase === 'rodada') corpo = html`<${TimeRodada} r=${r} equipeIdx=${equipeIdx} />`;
