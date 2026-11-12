@@ -1511,6 +1511,8 @@ function TimeRodada({ r, equipeIdx }) {
   const bloco = blocoAtual(r);
   const round = rodadaAtual(r);
   const jaRespondeu = !!(r.respostas || {})[equipeIdx];
+  const ms = useContagem(r.deadlineAt, r.paused, r.pausedRemainingMs);
+  const relogio = html`<div class="sub" style="text-align:center;">⏱ ${Math.ceil(ms / 1000)}s</div>`;
   const iniciadaEmRef = useRef(Date.now());
   useEffect(() => { iniciadaEmRef.current = Date.now(); }, [r.blocoIndex, r.rodadaIndex]);
   function enviar(valor, extra) {
@@ -1522,6 +1524,7 @@ function TimeRodada({ r, equipeIdx }) {
     const [sel, setSel] = useState(null);
     return html`
       <div class="time-body">
+        ${relogio}
         <div class="display display-md" style="font-size:1.3rem;">${round.pergunta}</div>
         <div class="opcoes-time">
           ${round.opcoes.map((op, i) => html`
@@ -1537,6 +1540,7 @@ function TimeRodada({ r, equipeIdx }) {
     const ordemRef = useRef([]);
     return html`
       <div class="time-body">
+        ${relogio}
         <div class="sub">${round.titulo} — arraste pela ordem certa. Tentativas: ${tentativas}</div>
         <${TimeCronosList} itens=${round.itens} disabled=${jaRespondeu} onChange=${(ordem) => { ordemRef.current = ordem; }} />
         <button class="btn btn-primary" disabled=${jaRespondeu || tentativas <= 0} onClick=${() => {
@@ -1577,6 +1581,7 @@ function TimeRodada({ r, equipeIdx }) {
     useFlip(containerRef, { dep: ordem.join(',') });
     return html`
       <div class="time-body">
+        ${relogio}
         <div class="sub">Toque em 4 palavras com algo em comum. Chances: ${chances}</div>
         ${resolvidos.map((grupoIdxs, gi2) => html`<div class="quatro-tema-label" key=${gi2}>${round.grupos[palavras[grupoIdxs[0]].v.gi].tema}</div>`)}
         <div class="quatro-time-grid" ref=${containerRef}>
@@ -1600,6 +1605,7 @@ function TimeRodada({ r, equipeIdx }) {
     function pular() { enviar('(pulou a rodada)', { pistaIndexNoAcerto: vistas - 1 }); }
     return html`
       <div class="time-body">
+        ${relogio}
         ${round.pistas.slice(0, vistas).map((p, i) => html`<div class="pista-time-box" key=${i}>${i + 1}. ${p}</div>`)}
         <div class="sub" style="text-align:center;">Responder agora vale ${valorAtual} pontos${podeVerMais ? ` · próxima pista vale ${bloco.valoresPista[vistas]}` : ''}</div>
         ${podeVerMais && !eliminado && !jaRespondeu ? html`<button class="btn btn-outline" onClick=${verMaisPista}>Ver próxima pista</button>` : ''}
