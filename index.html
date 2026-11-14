@@ -410,16 +410,25 @@ function subscribeOverflow(handler) {
 
 function pushState(state) { set(stateRef, state); }
 // RTDB não guarda array vazio nem buraco em array (vira null) — reconstitui.
+// Updates esparsos (ex: timeConectado/3) fazem o RTDB devolver objeto {3: x} em vez de array — normaliza.
+function toArraySparse(val, len) {
+  const arr = Array(len).fill(null);
+  if (!val) return arr;
+  if (Array.isArray(val)) { val.forEach((v, i) => { if (i < len) arr[i] = v; }); return arr; }
+  Object.keys(val).forEach((k) => { const i = Number(k); if (i >= 0 && i < len) arr[i] = val[k]; });
+  return arr;
+}
 function sanitizeState(raw) {
   const base = initialState();
   if (!raw) return base;
+  const equipes = (raw.revanche && raw.revanche.equipes) || base.revanche.equipes;
   return {
     ...base, ...raw,
     premiacao: { ...base.premiacao, ...(raw.premiacao || {}), categorias: (raw.premiacao && raw.premiacao.categorias) || base.premiacao.categorias },
     revanche: {
       ...base.revanche, ...(raw.revanche || {}),
-      equipes: (raw.revanche && raw.revanche.equipes) || base.revanche.equipes,
-      timeConectado: (raw.revanche && raw.revanche.timeConectado) || base.revanche.timeConectado,
+      equipes,
+      timeConectado: toArraySparse(raw.revanche && raw.revanche.timeConectado, equipes.length),
       apostas: (raw.revanche && raw.revanche.apostas) || {},
       respostas: (raw.revanche && raw.revanche.respostas) || {},
       acertosBloco: (raw.revanche && raw.revanche.acertosBloco) || {},
